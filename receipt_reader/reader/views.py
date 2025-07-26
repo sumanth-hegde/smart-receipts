@@ -89,33 +89,47 @@ class ReceiptListView(APIView):
 class ChatbotView(APIView):
     def post(self, request, *args, **kwargs):
         query = request.data.get('query')
+        history = request.data.get('history', [])
+
         if not query:
             return Response({'error': 'A query is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             receipts = Receipt.objects.all().order_by('-uploaded_at')
-            if not receipts.exists():
-                return Response(
-                    {'response': "I don't have any receipt data to search through yet. Please scan a receipt first!"})
-
             serializer = ReceiptSerializer(receipts, many=True)
-            receipts_data = json.dumps(serializer.data)
+            receipts_data = "[]"
+            if receipts.exists():
+                receipts_data = json.dumps(serializer.data)
 
             model = genai.GenerativeModel("gemini-1.5-flash")
 
-            prompt = f"""
-            You are a friendly and helpful AI assistant for managing personal finances based on receipt data.
-            Based *only* on the provided JSON data of receipts, answer the user's question.
-            Do not make up information. If the answer cannot be found in the provided data, say so politely.
+            formatted_history = ""
+            for message in history:
+                role = "User" if message.get('sender') == 'user' else "You"
+                formatted_history += f"{role}: {message.get('text')}\n"
 
-            Here is the available receipt data:
+            # --- START: PROMPT UPDATED FOR CONCISENESS ---
+            prompt = f"""
+            You are a friendly and helpful AI assistant specializing in personal finance. You are having a conversation with a user. Make it short, give the main points only.
+
+            **Your Role & Rules:**
+            1.  **Maintain Context:** Use the "Previous Conversation" to understand follow-up questions.
+            2.  **Prioritize User Data:** First, always try to answer the user's question using their personal "Receipt Data".
+            3.  **Provide General Advice:** If the question is for general advice and cannot be answered from the receipt data, use your own knowledge to provide helpful, actionable tips.
+            4.  **Be Concise and Clear:** Keep your answers brief. When giving a list of suggestions, use bullet points (`*`) for easy reading. Avoid long introductory or concluding paragraphs.
+            5.  **Be Conversational:** Keep your tone friendly and helpful.
+            6.  **Currency:** All financial figures must be in Rupees (₹).
+
+            **Receipt Data (JSON):**
             {receipts_data}
 
-            Here is the user's question:
-            "{query}"
+            **Previous Conversation:**
+            {formatted_history}
 
-            Provide a concise and conversational answer and make sure while giving the answer just change the currency from dollars to rupees.
+            **User's New Message:**
+            "{query}"
             """
+            # --- END: PROMPT UPDATED FOR CONCISENESS ---
 
             response = model.generate_content(prompt)
             return Response({'response': response.text})
