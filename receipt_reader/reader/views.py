@@ -108,7 +108,7 @@ class ChatbotView(APIView):
             Here is the user's question:
             "{query}"
 
-            Provide a concise and conversational answer and make sure the currency is in rupees.
+            Provide a concise and conversational answer and make sure while giving the answer just change the currency from dollars to rupees.
             """
 
             response = model.generate_content(prompt)

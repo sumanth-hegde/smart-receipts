@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartReceipts</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Icon Library for Microphone -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -95,7 +97,7 @@
             width: 100%;
         }
 
-        /* --- NEW ANIMATED PROCESSING OVERLAY --- */
+        /* Animated Processing Overlay */
         .processing-overlay {
             position: fixed;
             top: 0;
@@ -222,26 +224,39 @@
         }
         .chat-input-form {
             display: flex;
+            align-items: center;
             margin-top: auto;
             flex-shrink: 0;
         }
         .chat-input {
             flex-grow: 1;
-            padding: 10px;
+            padding: 10px 15px;
             border-radius: 20px;
             border: none;
             background-color: #415a77;
             color: white;
         }
+        .mic-btn, .send-btn {
+            background-color: transparent;
+            color: #adb5bd;
+            border: none;
+            width: 40px;
+            height: 40px;
+            margin-left: 5px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: color 0.3s;
+        }
+        .mic-btn:hover, .send-btn:hover {
+            color: #ffffff;
+        }
+        .mic-btn.is-listening {
+            color: #ff4d4d;
+        }
         .send-btn {
             background-color: #007bff;
             color: white;
-            border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            margin-left: 10px;
-            cursor: pointer;
         }
 
         /* List Data Section */
@@ -300,9 +315,11 @@
                 <div class="chatbot-container">
                     <div class="chatbot-header">Chatbot</div>
                     <div class="chat-messages" id="chatMessages"></div>
+                    <!-- UPDATED CHAT FORM -->
                     <form class="chat-input-form" id="chatForm">
-                        <input type="text" class="chat-input" id="chatInput" placeholder="e.g., How much did I spend on food?">
-                        <button type="submit" class="send-btn">→</button>
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Ask or tap the mic...">
+                        <button type="button" class="mic-btn" id="micBtn"><i class="fas fa-microphone"></i></button>
+                        <button type="submit" class="send-btn"><i class="fas fa-paper-plane"></i></button>
                     </form>
                 </div>
             </div>
@@ -314,7 +331,6 @@
         </nav>
     </div>
 
-     <!-- UPDATED PROCESSING OVERLAY HTML -->
      <div class="processing-overlay" id="processingOverlay" style="display: none;">
         <div class="spinner"></div>
         <p>Analyzing Receipt...</p>
@@ -354,68 +370,45 @@
                 tab.addEventListener('click', () => {
                     tabs.forEach(item => item.classList.remove('active'));
                     contents.forEach(content => content.classList.remove('active'));
-
                     tab.classList.add('active');
                     const activeTab = document.getElementById(tab.dataset.tab);
                     activeTab.classList.add('active');
                     contentArea.scrollTop = 0;
-
-                    if (tab.dataset.tab === 'list') {
-                        fetchAndRenderData();
-                    }
-                    if (tab.dataset.tab === 'scan') {
-                        showMainView();
-                    }
+                    if (tab.dataset.tab === 'list') fetchAndRenderData();
+                    if (tab.dataset.tab === 'scan') showMainView();
                 });
             });
 
             scanBtn.addEventListener('click', () => fileInput.click());
-
             fileInput.addEventListener('change', (event) => {
-                if (event.target.files.length > 0) {
-                    const file = event.target.files[0];
-                    processImage(file);
-                }
+                if (event.target.files.length > 0) processImage(event.target.files[0]);
             });
 
             function processImage(file) {
                 const formData = new FormData();
                 formData.append('image', file);
-
                 processingOverlay.style.display = 'flex';
-
                 fetch('/api/process/', {
                     method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken
-                    },
+                    headers: { 'X-CSRFToken': csrftoken },
                     body: formData,
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        return response.text().then(text => { throw new Error(text) });
-                    }
+                    if (!response.ok) return response.text().then(text => { throw new Error(text) });
                     return response.json();
                 })
                 .then(data => {
                     processingOverlay.style.display = 'none';
-                    if (data.error) {
-                         alert(`Error: ${data.error}`);
-                         return;
-                    }
+                    if (data.error) return alert(`Error: ${data.error}`);
                     displayResults(data.json_data);
                 })
                 .catch(error => {
                     processingOverlay.style.display = 'none';
                     console.error('Error:', error);
-                    let errorMessage = 'An unexpected error occurred.';
+                    let errorMessage = "An unexpected error occurred.";
                     try {
                         const errorJson = JSON.parse(error.message);
-                        if (errorJson.error) {
-                            errorMessage = `Upload failed: ${errorJson.error}`;
-                        } else if (errorJson.image) {
-                             errorMessage = `Upload failed: ${errorJson.image[0]}`;
-                        }
+                        errorMessage = `Upload failed: ${errorJson.error || errorJson.image[0]}`;
                     } catch (e) {
                         errorMessage = "Server error. Please try again later.";
                     }
@@ -439,14 +432,11 @@
                     <div class="items-list">
                         ${(data.Items || []).map(item => `<div class="item"><span>${item.Item}</span><span>₹${item.Price}</span></div>`).join('')}
                     </div>
-                    <div class="category-section">
-                        <span class="category-tag">${data.Category || 'General'}</span>
-                    </div>
+                    <div class="category-section"><span class="category-tag">${data.Category || 'General'}</span></div>
                 </div>`;
                 resultsScreen.innerHTML = resultsHTML;
                 mainView.style.display = 'none';
                 resultsScreen.style.display = 'block';
-
                 document.getElementById('backBtn').addEventListener('click', showMainView);
             }
 
@@ -460,9 +450,7 @@
              function fetchAndRenderData() {
                 fetch('/api/receipts/')
                     .then(response => response.json())
-                    .then(data => {
-                        renderDataTable(data);
-                    })
+                    .then(data => renderDataTable(data))
                     .catch(error => {
                         console.error('Error fetching receipt data:', error);
                         dataTableBody.innerHTML = '<tr><td colspan="3">Could not load data.</td></tr>';
@@ -470,38 +458,72 @@
             }
 
             function renderDataTable(receipts) {
-                dataTableBody.innerHTML = '';
-                if (!receipts || receipts.length === 0) {
-                    dataTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No receipts found.</td></tr>';
-                    return;
+                dataTableBody.innerHTML = !receipts || receipts.length === 0 ? '<tr><td colspan="3" style="text-align: center;">No receipts found.</td></tr>' : '';
+                if (receipts) {
+                    receipts.forEach(receipt => {
+                        const jsonData = receipt.json_data;
+                        if (jsonData) {
+                            const totalAmount = jsonData['Total Amount'] ? parseFloat(jsonData['Total Amount']).toFixed(2) : 'N/A';
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td>${jsonData['Merchant Name'] || 'N/A'}</td><td>${jsonData['Transaction Date'] || 'N/A'}</td><td>₹${totalAmount}</td>`;
+                            dataTableBody.appendChild(row);
+                        }
+                    });
                 }
-                receipts.forEach(receipt => {
-                    const jsonData = receipt.json_data;
-                    if (jsonData) {
-                        const totalAmount = jsonData['Total Amount'] ? parseFloat(jsonData['Total Amount']).toFixed(2) : 'N/A';
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${jsonData['Merchant Name'] || 'N/A'}</td>
-                            <td>${jsonData['Transaction Date'] || 'N/A'}</td>
-                            <td>₹${totalAmount}</td>
-                        `;
-                        dataTableBody.appendChild(row);
-                    }
-                });
             }
 
 
+            // --- Chatbot Logic with Voice Search ---
             const chatForm = document.getElementById('chatForm');
             const chatInput = document.getElementById('chatInput');
             const chatMessages = document.getElementById('chatMessages');
+            const micBtn = document.getElementById('micBtn');
+
+            // Check for Web Speech API support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+
+                micBtn.addEventListener('click', () => {
+                    recognition.start();
+                });
+
+                recognition.addEventListener('start', () => {
+                    micBtn.classList.add('is-listening');
+                    chatInput.placeholder = 'Listening...';
+                });
+
+                recognition.addEventListener('end', () => {
+                    micBtn.classList.remove('is-listening');
+                    chatInput.placeholder = 'Ask or tap the mic...';
+                });
+
+                recognition.addEventListener('result', (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    chatInput.value = transcript;
+                    // Automatically submit the form with the transcribed text
+                    chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                });
+
+            } else {
+                // Hide the mic button if the browser doesn't support the API
+                micBtn.style.display = 'none';
+            }
 
             chatForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const message = chatInput.value.trim();
                 if (!message) return;
 
-                appendMessage(message, 'user');
+                sendMessageToBot(message);
                 chatInput.value = '';
+            });
+
+            function sendMessageToBot(messageText) {
+                appendMessage(messageText, 'user');
                 appendMessage("Thinking...", 'bot', true);
 
                 fetch('/api/chatbot/', {
@@ -510,24 +532,20 @@
                         'Content-Type': 'application/json',
                         'X-CSRFToken': csrftoken
                     },
-                    body: JSON.stringify({ query: message }),
+                    body: JSON.stringify({ query: messageText }),
                 })
                 .then(response => response.json())
-                .then(data => {
-                    updateLastBotMessage(data.response);
-                })
+                .then(data => updateLastBotMessage(data.response))
                 .catch(error => {
-                     console.error('Error:', error)
+                     console.error('Error:', error);
                      updateLastBotMessage("Sorry, I'm having trouble connecting.");
                 });
-            });
+            }
 
              function appendMessage(message, sender, isThinking = false) {
                 const messageElement = document.createElement('div');
                 messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
-                if (isThinking) {
-                    messageElement.id = 'thinking-message';
-                }
+                if (isThinking) messageElement.id = 'thinking-message';
                 messageElement.innerText = message;
                 chatMessages.appendChild(messageElement);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
