@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- --- NEW: ADD CHART.JS LIBRARY --- -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -29,7 +28,7 @@
         body {
             font-family: var(--font-family); background-color: var(--background-color);
             margin: 0; display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; min-height: -webkit-fill-available;
+            min-height: 100vh;
         }
         .app-container {
             width: 100%; max-width: 420px; background-color: var(--background-color);
@@ -43,11 +42,11 @@
             border-bottom: 1px solid var(--border-color); z-index: 10;
         }
         .app-header h1 {
-            font-size: 20px; /* <-- Size reduced */ font-weight: 500;
+            font-size: 20px; font-weight: 500;
             display: flex; align-items: center; justify-content: center;
         }
         .app-header .material-icons {
-            margin-right: 8px; color: var(--primary-color); font-size: 22px; /* <-- Size reduced */
+            margin-right: 8px; color: var(--primary-color); font-size: 22px;
         }
         .content-area {
             flex-grow: 1; overflow-y: auto; position: relative; padding: 20px;
@@ -79,7 +78,7 @@
         .scan-container {
             text-align: center; display: flex; flex-direction: column;
             justify-content: center; align-items: center; gap: 16px;
-            color: var(--on-surface-variant-color);
+            color: var(--on-surface-variant-color); margin: auto;
         }
         .scan-container .material-icons { font-size: 80px; color: var(--border-color); }
         .scan-container h2 { font-size: 22px; font-weight: 500; color: var(--on-surface-color); }
@@ -87,7 +86,7 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
             color: white; display: none; flex-direction: column; justify-content: center;
-            align-items: center; z-index: 1000; font-size: 18px; opacity: 0; transition: opacity 0.3s;
+            align-items: center; z-index: 2000; font-size: 18px; opacity: 0; transition: opacity 0.3s;
         }
         .processing-overlay.visible { display: flex; opacity: 1; }
         .spinner {
@@ -96,7 +95,7 @@
             animation: spin 1s linear infinite; margin-bottom: 20px;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        #resultsScreen { display: none; }
+        #resultsScreen { display: none; width: 100%; }
         .results-header { display: flex; align-items: center; margin-bottom: 24px; }
         .results-header .back-arrow { color: var(--on-surface-variant-color); cursor: pointer; padding: 8px; }
         .results-header h2 { font-size: 20px; font-weight: 500; margin-left: 16px; color: var(--on-surface-color); }
@@ -134,7 +133,6 @@
         .list-item-card .merchant { font-weight: 500; color: var(--on-surface-color); font-size: 16px; }
         .list-item-card .date { color: var(--on-surface-variant-color); font-size: 14px; }
         .list-item-card .total { font-weight: 700; color: var(--on-surface-color); font-size: 18px; }
-        /* --- NEW: CATEGORY TAG STYLE --- */
         .category-tag {
             font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 12px;
             background-color: var(--background-color); color: var(--on-surface-variant-color);
@@ -170,79 +168,119 @@
         .report-item-name { font-size: 20px; font-weight: 700; color: var(--on-surface-color); }
         .report-item-price { font-size: 24px; font-weight: 500; color: var(--on-surface-color); margin-top: 4px; }
         .report-item-details { font-size: 14px; color: var(--on-surface-variant-color); margin-top: 8px; }
-        .chat-messages { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
-        .message { padding: 10px 16px; border-radius: 18px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
-        .user-message { background-color: var(--primary-color); color: var(--on-primary-color); margin-left: auto; border-bottom-right-radius: 4px; }
-        .bot-message { background-color: var(--surface-color); color: var(--on-surface-color); align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: var(--shadow-1); }
-        .chat-input-form {
-            display: flex; align-items: center; flex-shrink: 0; background-color: var(--surface-color);
-            border-radius: 28px; padding: 6px; box-shadow: var(--shadow-1); margin-top: 16px;
+
+        .chat-header-message {
+            text-align: center; padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color); margin-bottom: 20px;
         }
+        .chat-header-message h2 { font-size: 22px; font-weight: 700; color: var(--on-surface-color); margin-bottom: 4px; }
+        .chat-header-message p { font-size: 14px; color: var(--on-surface-variant-color); }
+        .chat-messages { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+        .message { padding: 12px 16px; border-radius: 18px; max-width: 85%; line-height: 1.5; word-wrap: break-word; font-size: 15px; }
+        .user-message { background-color: var(--primary-color); color: var(--on-primary-color); margin-left: auto; border-bottom-right-radius: 4px; align-self: flex-end; }
+        .bot-message { background-color: var(--surface-color); color: var(--on-surface-color); align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .suggestion-chips-inline { padding-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip { padding: 6px 12px; font-size: 13px; font-weight: 500; background-color: var(--background-color); border: 1px solid var(--border-color); border-radius: 16px; cursor: pointer; transition: all 0.2s; }
+        .chip:hover { background-color: var(--primary-variant); color: var(--on-primary-color); border-color: var(--primary-variant);}
+        .chat-input-form { display: flex; align-items: center; flex-shrink: 0; background-color: var(--surface-color); border-radius: 28px; padding: 6px; box-shadow: var(--shadow-1); margin-top: 16px; }
         .chat-input { flex-grow: 1; padding: 10px; border: none; background-color: transparent; color: var(--on-surface-color); font-size: 16px; font-family: var(--font-family); }
         .chat-input:focus { outline: none; }
-        .chat-btn {
-            background-color: transparent; color: var(--on-surface-variant-color); border: none;
-            width: 44px; height: 44px; cursor: pointer; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .chat-btn { background-color: transparent; color: var(--on-surface-variant-color); border: none; width: 44px; height: 44px; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         #sendBtn { background-color: var(--primary-color); color: var(--on-primary-color); }
 
-        /* --- TRACKER PAGE STYLES --- */
-        .budget-card {
-            background-color: var(--surface-color); padding: 20px; border-radius: var(--border-radius);
-            box-shadow: var(--shadow-1); margin-bottom: 20px;
-        }
-        .budget-card h3 { font-size: 16px; font-weight: 500; color: var(--on-surface-variant-color); margin-bottom: 16px; }
+        .budget-card, #category-chart-container { background-color: var(--surface-color); padding: 20px; border-radius: var(--border-radius); box-shadow: var(--shadow-1); margin-bottom: 20px; }
+        .budget-card h3, #category-chart-container h3 { font-size: 16px; font-weight: 500; color: var(--on-surface-variant-color); margin-bottom: 16px; }
         .budget-form { display: flex; gap: 12px; align-items: center; }
         .budget-form .input-group { position: relative; flex-grow: 1; }
-        .budget-form .input-group .currency-symbol {
-            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-            color: var(--on-surface-variant-color); font-size: 16px;
-        }
-        .budget-form input {
-            width: 100%; padding: 12px 12px 12px 28px; background-color: var(--background-color);
-            border: 1px solid var(--border-color); color: var(--on-surface-color);
-            border-radius: 8px; font-family: var(--font-family); font-size: 16px;
-        }
-        .budget-form button {
-            padding: 12px 16px; border-radius: 8px; border: none; font-weight: 500;
-            cursor: pointer; background-color: var(--secondary-color); color: var(--on-primary-color);
-        }
+        .budget-form .input-group .currency-symbol { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--on-surface-variant-color); font-size: 16px; }
+        .budget-form input { width: 100%; padding: 12px 12px 12px 28px; background-color: var(--background-color); border: 1px solid var(--border-color); color: var(--on-surface-color); border-radius: 8px; font-family: var(--font-family); font-size: 16px; }
+        .budget-form button { padding: 12px 16px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer; background-color: var(--secondary-color); color: var(--on-primary-color); }
         .progress-bar-container { margin-top: 20px; }
         .progress-bar-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
         .progress-bar-bg { width: 100%; height: 10px; background-color: var(--border-color); border-radius: 5px; overflow: hidden; }
-        .progress-bar-fill {
-            height: 100%; width: 0%; background-color: var(--primary-color); border-radius: 5px;
-            transition: width 0.5s ease-out;
-        }
+        .progress-bar-fill { height: 100%; width: 0%; background-color: var(--primary-color); border-radius: 5px; transition: width 0.5s ease-out; }
         .progress-bar-fill.warning { background-color: var(--warning-color); }
         .progress-bar-fill.danger { background-color: var(--danger-color); }
-        #suggestion-card {
-            background-color: #fffbeb; border: 1px solid var(--warning-color); color: #5c3c00;
-            padding: 16px; border-radius: var(--border-radius); display: flex; gap: 12px;
-        }
+        #suggestion-card { background-color: #fffbeb; border: 1px solid var(--warning-color); color: #5c3c00; padding: 16px; border-radius: var(--border-radius); display: flex; gap: 12px; }
         #suggestion-card .material-icons { color: var(--warning-color); }
         #suggestion-card p { font-size: 14px; line-height: 1.5; }
-        /* --- NEW: CATEGORY CHART STYLE --- */
-        #category-chart-container {
-            background-color: var(--surface-color); padding: 20px; border-radius: var(--border-radius);
-            box-shadow: var(--shadow-1); margin-bottom: 20px;
-        }
 
+        /* --- STYLES FOR SCAN MODAL AND CAMERA VIEW --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 1500;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal-content {
+            background: var(--surface-color); padding: 24px;
+            border-radius: 16px; box-shadow: var(--shadow-2);
+            display: flex; flex-direction: column; gap: 16px; width: 80%; max-width: 300px;
+        }
+        .modal-content h3 { text-align: center; font-weight: 500; margin-bottom: 8px; }
+        .modal-button {
+            display: flex; align-items: center; gap: 16px; padding: 14px;
+            border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .modal-button:hover { background-color: #e8f0fe; border-color: var(--primary-color); }
+        .modal-button .material-icons { color: var(--primary-color); }
+        .modal-button span { font-size: 16px; font-weight: 500; }
+
+        #camera-view {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000;
+            display: none; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 1600;
+        }
+        #camera-feed, #camera-preview { width: 100%; height: 100%; object-fit: cover; }
+        #camera-preview { display: none; }
+        #camera-controls {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 24px; display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+        }
+        #shutter-btn {
+            width: 64px; height: 64px; border-radius: 50%;
+            background-color: transparent; border: 4px solid #fff;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.3); cursor: pointer;
+        }
+        #camera-actions { display: none; width: 100%; justify-content: space-around; }
+        .camera-action-btn {
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(5px);
+            color: #fff; border: 2px solid #fff; border-radius: 50%;
+            width: 60px; height: 60px;
+            font-size: 16px; font-weight: 700; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+        }
+        #close-camera-btn {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.4); color: white;
+            border: none; border-radius: 50%;
+            width: 44px; height: 44px;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
+        <!-- HEADER -->
         <header class="app-header">
             <h1><i class="material-icons">receipt_long</i>SmartReceipts</h1>
         </header>
 
+        <!-- CONTENT AREA -->
         <main class="content-area">
             <div id="scan-page" class="tab-content active">
-                <div id="main-scan-view"><div class="scan-container">
-                    <i class="material-icons">document_scanner</i>
-                    <h2>Scan a Receipt</h2><p>Press the camera button to begin.</p>
-                </div></div>
+                <div id="main-scan-view" style="margin: auto;">
+                    <div class="scan-container">
+                        <i class="material-icons">document_scanner</i>
+                        <h2>Scan a Receipt</h2>
+                        <p>Press the camera button to begin.</p>
+                    </div>
+                </div>
                 <div id="resultsScreen"></div>
             </div>
 
@@ -266,13 +304,10 @@
                             <div class="progress-bar-bg"><div id="progressBar" class="progress-bar-fill"></div></div>
                         </div>
                     </div>
-
-                    <!-- --- NEW: CHART CONTAINER --- -->
                     <div id="category-chart-container">
                         <h3>Spending by Category</h3>
                         <canvas id="categoryChart"></canvas>
                     </div>
-
                     <div id="suggestion-container"></div>
                     <h3>This Month's Transactions</h3>
                     <div id="monthlyTransactions" class="scrollable-content"></div>
@@ -283,7 +318,8 @@
                 <h1 class="page-header">Expense Report</h1>
                 <form id="reportFilterForm">
                     <div class="date-inputs">
-                        <input type="date" id="startDate" name="start_date"><input type="date" id="endDate" name="end_date">
+                        <input type="date" id="startDate" name="start_date">
+                        <input type="date" id="endDate" name="end_date">
                     </div>
                     <div class="filter-buttons">
                         <button type="submit"><i class="material-icons">filter_alt</i>Filter</button>
@@ -294,20 +330,20 @@
             </div>
 
             <div id="chatbot-page" class="tab-content">
-                <div class="chat-messages" id="chatMessages">
-                     <div class="message bot-message">Hi! How can I help you analyze your spending?</div>
-                </div>
+                <div class="chat-messages" id="chatMessages"></div>
                 <form class="chat-input-form" id="chatForm">
-                    <input type="text" class="chat-input" id="chatInput" placeholder="Ask about your spending...">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Ask your financial question...">
                     <button type="button" class="chat-btn mic-btn" id="micBtn"><i class="material-icons">mic</i></button>
                     <button type="submit" class="chat-btn" id="sendBtn"><i class="material-icons">send</i></button>
                 </form>
             </div>
         </main>
 
+        <!-- FLOATING ACTION BUTTON -->
         <button id="scanBtn"><i class="material-icons">photo_camera</i></button>
         <input type="file" id="fileInput" accept="image/*" style="display:none;">
 
+        <!-- BOTTOM NAVIGATION -->
         <nav class="tab-nav">
             <div class="tab-link active" data-tab="scan-page"><i class="material-icons">document_scanner</i><span class="tab-label">Scan</span></div>
             <div class="tab-link" data-tab="tracker-page"><i class="material-icons">track_changes</i><span class="tab-label">Tracker</span></div>
@@ -316,14 +352,148 @@
         </nav>
     </div>
 
+    <!-- MODAL AND CAMERA VIEWS (placed outside app-container for full screen) -->
+    <div class="modal-overlay" id="scan-options-modal">
+        <div class="modal-content">
+            <h3>Scan a Receipt</h3>
+            <div class="modal-button" id="upload-btn">
+                <i class="material-icons">photo_library</i>
+                <span>Upload from Library</span>
+            </div>
+            <div class="modal-button" id="camera-btn">
+                <i class="material-icons">photo_camera</i>
+                <span>Use Camera</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="camera-view">
+        <video id="camera-feed" playsinline autoplay></video>
+        <canvas id="camera-preview"></canvas>
+        <div id="camera-controls">
+            <button id="shutter-btn"></button>
+            <div id="camera-actions">
+                <button class="camera-action-btn" id="retake-btn"><i class="material-icons">refresh</i></button>
+                <button class="camera-action-btn" id="upload-capture-btn"><i class="material-icons">check</i></button>
+            </div>
+        </div>
+        <button id="close-camera-btn"><i class="material-icons">close</i></button>
+    </div>
+
+    <!-- PROCESSING OVERLAY -->
     <div class="processing-overlay" id="processingOverlay">
         <div class="spinner"></div><p>Analyzing & Categorizing...</p>
     </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        let categoryChartInstance = null;
+        // --- Get All DOM Elements ---
+        const scanBtn = document.getElementById('scanBtn');
+        const scanOptionsModal = document.getElementById('scan-options-modal');
+        const uploadBtn = document.getElementById('upload-btn');
+        const cameraBtn = document.getElementById('camera-btn');
+        const fileInput = document.getElementById('fileInput');
 
+        const cameraView = document.getElementById('camera-view');
+        const cameraFeed = document.getElementById('camera-feed');
+        const cameraPreview = document.getElementById('camera-preview');
+        const shutterBtn = document.getElementById('shutter-btn');
+        const cameraActions = document.getElementById('camera-actions');
+        const retakeBtn = document.getElementById('retake-btn');
+        const uploadCaptureBtn = document.getElementById('upload-capture-btn');
+        const closeCameraBtn = document.getElementById('close-camera-btn');
+
+        let cameraStream = null;
+        let categoryChartInstance = null;
+        let chatHistory = [];
+
+        // --- Event Listeners ---
+        scanBtn.addEventListener('click', () => {
+            scanOptionsModal.classList.add('visible');
+        });
+
+        scanOptionsModal.addEventListener('click', (e) => {
+            if (e.target === scanOptionsModal) {
+                scanOptionsModal.classList.remove('visible');
+            }
+        });
+
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+            scanOptionsModal.classList.remove('visible');
+        });
+
+        cameraBtn.addEventListener('click', () => {
+            startCamera();
+            scanOptionsModal.classList.remove('visible');
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                processImage(e.target.files[0]);
+            }
+        });
+
+        shutterBtn.addEventListener('click', takePicture);
+        retakeBtn.addEventListener('click', retakePicture);
+        uploadCaptureBtn.addEventListener('click', uploadCapturedImage);
+        closeCameraBtn.addEventListener('click', stopCamera);
+
+        // --- Camera Logic ---
+        async function startCamera() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera API is not supported by your browser.');
+                }
+                const constraints = { video: { facingMode: 'environment' }, audio: false };
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraFeed.srcObject = cameraStream;
+                cameraView.style.display = 'flex';
+                retakePicture();
+            } catch (err) {
+                console.error("Camera Error:", err);
+                alert("Could not access the camera. Please ensure you have given permission and are using a secure (https) connection.");
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+            cameraView.style.display = 'none';
+            cameraStream = null;
+        }
+
+        function takePicture() {
+            const canvas = cameraPreview;
+            const context = canvas.getContext('2d');
+            canvas.width = cameraFeed.videoWidth;
+            canvas.height = cameraFeed.videoHeight;
+            context.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
+
+            cameraFeed.style.display = 'none';
+            cameraPreview.style.display = 'block';
+            shutterBtn.style.display = 'none';
+            cameraActions.style.display = 'flex';
+        }
+
+        function retakePicture() {
+            cameraFeed.style.display = 'block';
+            cameraPreview.style.display = 'none';
+            shutterBtn.style.display = 'block';
+            cameraActions.style.display = 'none';
+        }
+
+        function uploadCapturedImage() {
+            cameraPreview.toBlob(blob => {
+                const timestamp = new Date().toISOString().replace(/:/g, '-');
+                const capturedFile = new File([blob], `capture-${timestamp}.jpg`, { type: 'image/jpeg' });
+                processImage(capturedFile);
+                stopCamera();
+            }, 'image/jpeg', 0.9);
+        }
+
+        // --- Core App Logic ---
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -342,15 +512,33 @@
 
         const tabs = document.querySelectorAll('.tab-link');
         const contents = document.querySelectorAll('.tab-content');
-        const scanBtn = document.getElementById('scanBtn');
-        const fileInput = document.getElementById('fileInput');
+        const chatMessagesContainer = document.getElementById('chatMessages');
+
+        function initializeChat() {
+            chatHistory = [];
+            chatMessagesContainer.innerHTML = `
+                <div class="chat-header-message">
+                    <h2>Financial Advisor</h2>
+                    <p>Your AI guide to smarter spending.</p>
+                </div>
+                <div class="message bot-message">
+                    <span>Hi! How can I help you today? You can tap one of the suggestions below or type your own question.</span>
+                    <div class="suggestion-chips-inline">
+                        <div class="chip">What was my biggest expense?</div>
+                        <div class="chip">Summarize last month's spending</div>
+                        <div class="chip">How can I save on groceries?</div>
+                    </div>
+                </div>
+            `;
+            chatHistory.push({ sender: 'bot', text: chatMessagesContainer.querySelector('.bot-message span').textContent });
+        }
 
         tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const targetPageId = tab.dataset.tab;
+            tab.addEventListener('click', (e) => {
+                const targetPageId = e.currentTarget.dataset.tab;
                 tabs.forEach(item => item.classList.remove('active'));
                 contents.forEach(content => content.classList.remove('active'));
-                tab.classList.add('active');
+                e.currentTarget.classList.add('active');
                 document.getElementById(targetPageId).classList.add('active');
 
                 scanBtn.style.display = (targetPageId === 'scan-page') ? 'flex' : 'none';
@@ -358,25 +546,13 @@
                 if (targetPageId === 'tracker-page') renderTrackerPage();
                 if (targetPageId === 'report-page') generateAndRenderReport();
                 if (targetPageId === 'scan-page') showMainScanView();
+                if (targetPageId === 'chatbot-page') initializeChat();
             });
         });
 
-        scanBtn.addEventListener('click', () => fileInput.click());
-
-        // --- START OF FIX ---
-        fileInput.addEventListener('change', e => {
-            // Check if files were selected and pass only the first file to processImage
-            if (e.target.files.length > 0) {
-                processImage(e.target.files[0]);
-            }
-        });
-
-        function processImage(file) { // The 'file' parameter is now correctly a single File object
+        function processImage(file) {
             const formData = new FormData();
-            // Append the single file object to FormData
             formData.append('image', file);
-            // --- END OF FIX ---
-
             document.getElementById('processingOverlay').classList.add('visible');
 
             fetch('/api/process/', {
@@ -444,44 +620,30 @@
         function renderTrackerPage() {
             const container = document.getElementById('monthlyTransactions');
             container.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
-
             fetch('/api/tracker/')
                 .then(res => res.json())
                 .then(data => {
                     const budgetLimit = parseFloat(data.budget.limit);
                     const totalSpent = parseFloat(data.total_spent);
-
                     const now = new Date();
                     const monthName = now.toLocaleString('default', { month: 'long' });
                     document.getElementById('tracker-header').textContent = `${monthName} Tracker`;
-
                     document.getElementById('budgetLimitInput').value = budgetLimit.toFixed(2);
                     document.getElementById('spentAmount').textContent = `Spent: ₹${totalSpent.toFixed(2)}`;
                     document.getElementById('limitAmount').textContent = `Limit: ₹${budgetLimit.toFixed(2)}`;
-
                     const progressBar = document.getElementById('progressBar');
                     const percentage = (budgetLimit > 0) ? (totalSpent / budgetLimit) * 100 : 0;
                     progressBar.style.width = `${Math.min(percentage, 100)}%`;
                     progressBar.classList.remove('warning', 'danger');
                     if (percentage > 90) progressBar.classList.add('danger');
                     else if (percentage > 70) progressBar.classList.add('warning');
-
                     const suggestionContainer = document.getElementById('suggestion-container');
                     if (data.suggestion) {
-                        suggestionContainer.innerHTML = `
-                        <div id="suggestion-card">
-                            <i class="material-icons">lightbulb</i>
-                            <div>
-                                <h4>Spending Alert!</h4>
-                                <p>${data.suggestion}</p>
-                            </div>
-                        </div>`;
+                        suggestionContainer.innerHTML = `<div id="suggestion-card"><i class="material-icons">lightbulb</i><div><h4>Spending Alert!</h4><p>${data.suggestion}</p></div></div>`;
                     } else {
                         suggestionContainer.innerHTML = '';
                     }
-
                     renderCategoryChart(data.category_summary);
-
                     if (data.transactions.length === 0) {
                         container.innerHTML = `<div class="empty-state"><i class="material-icons">receipt_long</i><p>No transactions this month.</p></div>`;
                         return;
@@ -510,40 +672,27 @@
         function renderCategoryChart(categoryData) {
             const ctx = document.getElementById('categoryChart').getContext('2d');
             const chartContainer = document.getElementById('category-chart-container');
-
-            if (Object.keys(categoryData).length === 0) {
+            if (!categoryData || Object.keys(categoryData).length === 0) {
                 chartContainer.style.display = 'none';
                 return;
             }
             chartContainer.style.display = 'block';
-
             if (categoryChartInstance) {
                 categoryChartInstance.destroy();
             }
-
             const labels = Object.keys(categoryData);
             const data = Object.values(categoryData);
-
             categoryChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Spending',
-                        data: data,
-                        backgroundColor: [
-                            '#4285F4', '#EA4335', '#FBBC05', '#34A853',
-                            '#FA7B17', '#9334E6', '#E52592', '#7CB342'
-                        ],
+                        label: 'Spending', data: data,
+                        backgroundColor: ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#FA7B17', '#9334E6', '#E52592', '#7CB342'],
                         borderWidth: 0
                     }]
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { padding: 15, boxWidth: 12 } }
-                    }
-                }
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { padding: 15, boxWidth: 12 } } } }
             });
         }
 
@@ -579,17 +728,11 @@
             let reportHTML = '';
             if (data.most_expensive) {
                 const item = data.most_expensive;
-                reportHTML += `
-                <div class="report-card danger"><h3><i class="material-icons">trending_up</i>Most Expensive</h3>
-                    <div class="report-item-name">${item.Item}</div><div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div>
-                    <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div></div>`;
+                reportHTML += `<div class="report-card danger"><h3><i class="material-icons">trending_up</i>Most Expensive</h3><div class="report-item-name">${item.Item}</div><div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div><div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div></div>`;
             }
             if (data.least_expensive) {
                 const item = data.least_expensive;
-                reportHTML += `
-                <div class="report-card success"><h3><i class="material-icons">trending_down</i>Least Expensive</h3>
-                    <div class="report-item-name">${item.Item}</div><div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div>
-                    <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div></div>`;
+                reportHTML += `<div class="report-card success"><h3><i class="material-icons">trending_down</i>Least Expensive</h3><div class="report-item-name">${item.Item}</div><div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div><div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div></div>`;
             }
             reportContainer.innerHTML = reportHTML;
         }
@@ -601,35 +744,70 @@
             const message = input.value.trim();
             if (message) { sendMessageToBot(message); input.value = ''; }
         });
+
+        chatMessagesContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('chip')) {
+                const query = e.target.textContent;
+                sendMessageToBot(query);
+            }
+        });
+
         function sendMessageToBot(messageText) {
+            const header = document.querySelector('.chat-header-message');
+            const initialBotMessage = document.querySelector('.bot-message .suggestion-chips-inline');
+            if (header) {
+                header.style.display = 'none';
+                if(initialBotMessage) initialBotMessage.parentElement.style.display = 'none';
+            }
             appendMessage(messageText, 'user');
             appendMessage("...", 'bot', true);
             fetch('/api/chatbot/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
-                body: JSON.stringify({ query: messageText }),
+                body: JSON.stringify({
+                    query: messageText,
+                    history: chatHistory
+                }),
             })
             .then(response => response.json())
-            .then(data => updateLastBotMessage(data.response))
-            .catch(error => { updateLastBotMessage("Sorry, something went wrong."); });
+            .then(data => {
+                if(data.error) throw new Error(data.error);
+                updateLastBotMessage(data.response);
+            })
+            .catch(error => {
+                updateLastBotMessage("Sorry, something went wrong.");
+                console.error(error);
+            });
         }
         function appendMessage(text, sender, isThinking = false) {
-            const chatMessages = document.getElementById('chatMessages');
             const msgEl = document.createElement('div');
             msgEl.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
             if (isThinking) {
                 msgEl.id = 'thinking-message';
-                msgEl.innerHTML = `...`;
+                msgEl.textContent = '...';
             } else {
                 msgEl.textContent = text;
             }
-            chatMessages.appendChild(msgEl);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatMessagesContainer.appendChild(msgEl);
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+            if (sender === 'user' && !isThinking) {
+                 chatHistory.push({ sender: 'user', text: text });
+            }
         }
+
         function updateLastBotMessage(text) {
             const thinkingMsg = document.getElementById('thinking-message');
-            if (thinkingMsg) { thinkingMsg.textContent = text; thinkingMsg.id = ''; }
+            if (thinkingMsg) {
+                thinkingMsg.textContent = text;
+                thinkingMsg.id = '';
+                chatHistory.push({ sender: 'bot', text: text });
+            } else {
+                appendMessage(text, 'bot');
+            }
         }
+
+        initializeChat();
     });
     </script>
 </body>

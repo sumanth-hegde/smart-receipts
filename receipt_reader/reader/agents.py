@@ -59,9 +59,10 @@ class ChatbotAgent:
     It's designed for safe, accurate, and context-aware conversations.
     """
     def __init__(self):
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        self.model = genai.GenerativeModel("gemini-2.5-flash")
         self.system_prompt = """
         You are 'SmartReceipts Advisor,' an expert AI personal financial assistant. Your mission is to provide safe, accurate, and helpful financial insights based primarily on the user's provided data. Keep it short, clear and crisp. Here you need to act as a financial advisor, answering questions about the user's spending, budgeting, and financial strategies.
+        Always give short answers do not elaborate a lot. Use bullet points for lists to make them easy to digest. Content should be short but it should be clear and give great insights to the user.
 
         **YOUR CORE DIRECTIVES - YOU MUST FOLLOW THESE RULES:**
 
