@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from django.shortcuts import render
 import json
 from .models import Receipt
+from datetime import datetime  # <-- Import datetime
 
 load_dotenv()
 
@@ -33,14 +34,13 @@ class ReceiptProcessView(APIView):
                 model = genai.GenerativeModel("gemini-1.5-flash")
                 image_file = genai.upload_file(path=image_path)
 
-                # --- NEW, MORE ROBUST PROMPT ---
                 prompt = """
                 Analyze the provided receipt or invoice image. Your task is to meticulously extract the information below and format it into a precise JSON object.
                 The receipt can be from any type of merchant (e.g., supermarket, pharmacy, gas station, restaurant).
 
                 **JSON Fields to Extract:**
                 - "Merchant Name": The name of the store or service provider.
-                - "Transaction Date": The date of the transaction.
+                - "Transaction Date": The date of the transaction in YYYY-MM-DD format.
                 - "Transaction Time": The time of the transaction.
                 - "Items": A JSON array of objects. Each object must contain an "Item" (the name or description) and its corresponding "Price".
                 - "Subtotal": The total cost *before* taxes are applied.
@@ -55,18 +55,14 @@ class ReceiptProcessView(APIView):
 
                 response = model.generate_content([prompt, image_file])
 
-                # Clean the response to ensure it is valid JSON
                 cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "")
-
                 json_response = json.loads(cleaned_response_text)
-
                 receipt_instance.json_data = json_response
                 receipt_instance.save()
 
                 return Response(ReceiptSerializer(receipt_instance).data, status=status.HTTP_201_CREATED)
 
             except Exception as e:
-                # Handle potential errors from the API or JSON parsing
                 return Response({'error': f"An error occurred during processing: {str(e)}"},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -118,29 +114,50 @@ class ChatbotView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# --- NEW VIEW FOR EXPENSE REPORT ---
+# --- UPDATED VIEW FOR EXPENSE REPORT WITH DATE FILTERING ---
 class ExpenseReportView(APIView):
     def get(self, request, *args, **kwargs):
-        receipts = Receipt.objects.all()
-        if not receipts.exists():
-            return Response({"error": "No receipts available to generate a report."}, status=status.HTTP_404_NOT_FOUND)
+        all_receipts = Receipt.objects.all()
+        start_date_str = request.query_params.get('start_date')
+        end_date_str = request.query_params.get('end_date')
+
+        filtered_receipts = []
+
+        if start_date_str and end_date_str:
+            try:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return Response({"error": "Invalid date format. Please use YYYY-MM-DD."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            for receipt in all_receipts:
+                if receipt.json_data and 'Transaction Date' in receipt.json_data:
+                    date_str = receipt.json_data['Transaction Date']
+                    try:
+                        receipt_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                        if start_date <= receipt_date <= end_date:
+                            filtered_receipts.append(receipt)
+                    except (ValueError, TypeError):
+                        continue  # Ignore receipts with invalid date formats
+        else:
+            filtered_receipts = all_receipts
+
+        if not filtered_receipts:
+            return Response({"error": "No receipts found for the selected criteria."}, status=status.HTTP_404_NOT_FOUND)
 
         most_expensive_item = None
         least_expensive_item = None
         max_price = -1
         min_price = float('inf')
 
-        for receipt in receipts:
+        for receipt in filtered_receipts:
             data = receipt.json_data
-            # Ensure data and Items list exist and are not empty
             if data and 'Items' in data and isinstance(data['Items'], list):
                 for item in data['Items']:
                     try:
-                        # Ensure item is a dict and has Price
                         if isinstance(item, dict) and 'Price' in item and item['Price'] is not None:
                             price = float(item['Price'])
-
-                            # Check for most expensive
                             if price > max_price:
                                 max_price = price
                                 most_expensive_item = {
@@ -149,8 +166,6 @@ class ExpenseReportView(APIView):
                                     'Merchant': data.get('Merchant Name', 'N/A'),
                                     'Date': data.get('Transaction Date', 'N/A')
                                 }
-
-                            # Check for least expensive
                             if price < min_price:
                                 min_price = price
                                 least_expensive_item = {
@@ -160,11 +175,10 @@ class ExpenseReportView(APIView):
                                     'Date': data.get('Transaction Date', 'N/A')
                                 }
                     except (ValueError, TypeError):
-                        # Ignore items where price is not a valid number
                         continue
 
         if not most_expensive_item and not least_expensive_item:
-            return Response({"error": "Could not find any valid items to generate a report."},
+            return Response({"error": "Could not find any valid items in the selected receipts."},
                             status=status.HTTP_404_NOT_FOUND)
 
         report = {
