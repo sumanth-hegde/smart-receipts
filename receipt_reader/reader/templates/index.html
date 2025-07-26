@@ -4,342 +4,373 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartReceipts</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Icon Library for Microphone -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <style>
+        /* --- MASTER RESET & TYPOGRAPHY --- */
+        :root {
+            --dark-blue: #0D1B2A;
+            --mid-blue: #1B263B;
+            --light-blue: #415A77;
+            --slate-gray: #778DA9;
+            --light-gray: #E0E1DD;
+            --accent-color: #36A2EB;
+            --danger-color: #FF6384;
+            --success-color: #4BC0C0;
+            --warning-color: #FFCD56;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
-        .container {
+
+        /* --- MAIN APP CONTAINER --- */
+        .app-container {
             width: 100%;
             max-width: 400px;
-            background-color: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background-color: var(--dark-blue);
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
             overflow: hidden;
-            height: 700px;
+            height: 800px;
+            max-height: 90vh;
             display: flex;
             flex-direction: column;
         }
+
+        /* --- APP HEADER --- */
+        .app-header {
+            background-color: var(--mid-blue);
+            color: var(--light-gray);
+            padding: 20px;
+            text-align: center;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--light-blue);
+        }
+        .app-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .app-header h1 .fa-receipt {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+
         .content-area {
             flex-grow: 1;
             overflow-y: auto;
+            position: relative;
         }
+
+        /* --- TAB NAVIGATION --- */
         .tab-nav {
             display: flex;
-            background-color: #f8f9fa;
+            background-color: var(--mid-blue);
             flex-shrink: 0;
+            padding: 5px;
+            border-top: 1px solid var(--light-blue);
         }
         .tab-link {
             flex: 1;
-            padding: 15px;
+            padding: 12px 10px;
             text-align: center;
             cursor: pointer;
             font-weight: 500;
-            color: #6c757d;
+            color: var(--slate-gray);
             border-bottom: 3px solid transparent;
-            transition: color 0.3s, border-bottom-color 0.3s;
+            transition: color 0.3s, background-color 0.3s;
+            border-radius: 8px;
         }
         .tab-link.active {
-            color: #007bff;
-            border-bottom-color: #007bff;
+            color: var(--light-gray);
+            background-color: var(--light-blue);
         }
-        .tab-content {
-            display: none;
-            height: 100%;
-        }
-        .tab-content.active {
-             display: block;
-        }
+        .tab-link .fas { margin-right: 8px; }
 
-        /* Scan Tab */
+        .tab-content { display: none; height: 100%; }
+        .tab-content.active { display: block; }
+
+        /* --- SCAN TAB STYLES --- */
         .scan-container {
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
-            background-color: #0d1b2a;
-            color: white;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            box-sizing: border-box;
+            align-items: center;
         }
-        .wallet-header {
-            font-size: 24px;
-            font-weight: 700;
-            color: #e0e1dd;
-            margin-bottom: 20px;
-        }
-        .app-title {
+        .scan-container h2 {
             font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--light-gray);
+            margin-bottom: 15px;
         }
-        .app-subtitle {
-            color: #adb5bd;
+        .scan-container p {
+            color: var(--slate-gray);
             margin-bottom: 40px;
+            font-size: 16px;
         }
         .scan-btn {
-            background-color: #007bff;
+            background: linear-gradient(45deg, var(--accent-color), #4BC0C0);
             color: white;
-            padding: 15px 30px;
+            padding: 18px 30px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 18px;
+            font-weight: 600;
             cursor: pointer;
             width: 100%;
+            transition: transform 0.2s, box-shadow 0.3s;
         }
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(54, 162, 235, 0.3);
+        }
+        .scan-btn .fas { margin-right: 10px; }
 
-        /* Animated Processing Overlay */
+        /* --- PROCESSING OVERLAY --- */
         .processing-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
             background-color: rgba(13, 27, 42, 0.9);
             color: white;
-            display: flex;
+            display: none; /* Changed from flex to none */
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 1000;
             font-size: 20px;
+            opacity: 0;
             transition: opacity 0.3s;
         }
+        .processing-overlay.visible {
+            display: flex;
+            opacity: 1;
+        }
         .spinner {
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             border: 8px solid rgba(255, 255, 255, 0.2);
-            border-top: 8px solid #007bff;
+            border-top: 8px solid var(--accent-color);
             border-radius: 50%;
-            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-            margin-bottom: 20px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 25px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-
-        /* Results Screen */
+        /* --- RESULTS SCREEN --- */
         .results-container {
-            background-color: #f8f9fa;
+            background-color: var(--dark-blue);
+            color: var(--light-gray);
             padding: 20px;
             height: 100%;
             box-sizing: border-box;
         }
         .back-arrow {
-            font-size: 24px;
-            cursor: pointer;
-            margin-bottom: 15px;
+            font-size: 20px; cursor: pointer;
+            margin-bottom: 20px; color: var(--accent-color);
         }
-        .merchant-details {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .merchant-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-        }
-        .merchant-name {
-            font-size: 28px;
-            font-weight: 700;
-        }
-        .transaction-date {
-            color: #6c757d;
-        }
+        .results-header { text-align: center; margin-bottom: 30px; }
+        .results-header .fas { font-size: 48px; color: var(--accent-color); margin-bottom: 15px; }
+        .merchant-name { font-size: 26px; font-weight: 600; }
+        .transaction-date { color: var(--slate-gray); }
+
         .total-section {
-            background-color: #ffc107;
-            padding: 15px;
-            border-radius: 10px;
+            background-color: var(--mid-blue);
+            padding: 20px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 25px;
         }
-        .items-list, .category-section {
-            padding: 0 15px;
+        .total-section span:first-child { color: var(--slate-gray); }
+
+        .items-list h3 {
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--light-blue);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
         .item {
             display: flex;
             justify-content: space-between;
             margin-bottom: 15px;
+            font-size: 16px;
         }
+        .item span:first-child { color: var(--slate-gray); }
         .category-tag {
-            background-color: #ff6b6b;
-            color: white;
-            padding: 10px 20px;
+            background-color: var(--light-blue);
+            color: var(--light-gray);
+            padding: 8px 15px;
             border-radius: 20px;
             display: inline-block;
             float: right;
-        }
-        #main-view {
-             height: 100%;
+            margin-top: 10px;
         }
 
-        /* Chatbot Tab */
-        .chatbot-container {
-            background-color: #0d1b2a;
-            color: #e0e1dd;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            box-sizing: border-box;
-        }
-        .chatbot-header {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            flex-shrink: 0;
-        }
-        .chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        .message {
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 20px;
-            max-width: 80%;
-            line-break: anywhere;
-        }
-        .user-message {
-            background-color: #415a77;
-            margin-left: auto;
-        }
-        .bot-message {
-            background-color: #1b263b;
-            align-self: flex-start;
-        }
-        .chat-input-form {
-            display: flex;
-            align-items: center;
-            margin-top: auto;
-            flex-shrink: 0;
-        }
-        .chat-input {
-            flex-grow: 1;
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: none;
-            background-color: #415a77;
-            color: white;
-        }
-        .mic-btn, .send-btn {
-            background-color: transparent;
-            color: #adb5bd;
-            border: none;
-            width: 40px;
-            height: 40px;
-            margin-left: 5px;
-            cursor: pointer;
-            font-size: 20px;
-            transition: color 0.3s;
-        }
-        .mic-btn:hover, .send-btn:hover {
-            color: #ffffff;
-        }
-        .mic-btn.is-listening {
-            color: #ff4d4d;
-        }
-        .send-btn {
-            background-color: #007bff;
-            color: white;
-            border-radius: 50%;
+        /* --- LIST DATA & CHATBOT SHARED --- */
+        .page-container { padding: 20px; height: 100%; box-sizing: border-box; }
+        .page-container h2 {
+            color: var(--light-gray); margin-bottom: 20px;
+            padding-bottom: 10px; border-bottom: 1px solid var(--light-blue);
         }
 
-        /* List Data Section */
+        /* --- LIST DATA TABLE --- */
         .data-list-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
         .data-list-table th, .data-list-table td {
             padding: 12px 15px;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--light-blue);
             text-align: left;
+            color: var(--slate-gray);
         }
         .data-list-table th {
-            background-color: #f8f9fa;
+            color: var(--light-gray);
             font-weight: 600;
         }
+        .data-list-table tbody tr:hover { background-color: var(--mid-blue); }
+
+        /* --- CHATBOT --- */
+        .chatbot-container {
+            display: flex; flex-direction: column;
+            height: 100%;
+        }
+        .chat-messages {
+            flex-grow: 1; overflow-y: auto;
+            margin-bottom: 15px; padding-right: 10px;
+        }
+        .message {
+            margin-bottom: 15px; padding: 12px 18px;
+            border-radius: 18px; max-width: 85%;
+            line-break: anywhere;
+        }
+        .user-message {
+            background-color: var(--accent-color);
+            color: white; margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .bot-message {
+            background-color: var(--mid-blue);
+            color: var(--light-gray); align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-input-form {
+            display: flex; align-items: center; flex-shrink: 0;
+            background-color: var(--mid-blue);
+            border-radius: 25px; padding: 5px;
+        }
+        .chat-input {
+            flex-grow: 1; padding: 10px 15px;
+            border: none; background-color: transparent;
+            color: white; font-size: 16px;
+        }
+        .chat-input:focus { outline: none; }
+        .chat-btn {
+            background-color: transparent;
+            color: var(--slate-gray); border: none;
+            width: 40px; height: 40px; cursor: pointer;
+            font-size: 18px; transition: color 0.3s;
+        }
+        .chat-btn:hover { color: white; }
+        .chat-btn#sendBtn {
+            background-color: var(--accent-color); color: white;
+            border-radius: 50%;
+        }
+        .mic-btn.is-listening { color: var(--danger-color); }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="content-area" id="content-area">
+    <div class="app-container">
+        <!-- New App Header -->
+        <header class="app-header">
+            <h1><i class="fas fa-receipt"></i>SmartReceipts</h1>
+        </header>
+
+        <main class="content-area" id="content-area">
+            <!-- Scan Tab Content -->
             <div id="scan" class="tab-content active">
                 <div id="main-view">
-                     <div class="scan-container">
+                    <div class="scan-container">
                         <div>
-                            <div class="wallet-header">Receipt Wallet</div>
-                            <div class="app-title">SmartReceipts</div>
-                            <p class="app-subtitle">Scan and organize receipts</p>
+                            <h2>Scan & Extract</h2>
+                            <p>Use your camera to instantly digitize any receipt or invoice.</p>
                         </div>
-                        <button class="scan-btn" id="scanBtn">Scan receipt</button>
+                        <button class="scan-btn" id="scanBtn"><i class="fas fa-camera"></i>Scan Receipt</button>
                         <input type="file" id="fileInput" accept="image/*" style="display:none;">
                     </div>
                 </div>
                 <div id="resultsScreen" style="display: none;"></div>
             </div>
 
+            <!-- List Tab Content -->
             <div id="list" class="tab-content">
-                 <h2>Stored Receipt Data</h2>
-                <div id="dataListContainer">
-                    <table class="data-list-table" id="dataTable">
-                        <thead>
-                            <tr>
-                                <th>Merchant</th>
-                                <th>Date</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+                <div class="page-container">
+                    <h2>Receipt History</h2>
+                    <div id="dataListContainer">
+                        <table class="data-list-table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Merchant</th>
+                                    <th>Date</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
+            <!-- Chatbot Tab Content -->
             <div id="chatbot" class="tab-content">
-                <div class="chatbot-container">
-                    <div class="chatbot-header">Chatbot</div>
+                <div class="page-container chatbot-container">
                     <div class="chat-messages" id="chatMessages"></div>
-                    <!-- UPDATED CHAT FORM -->
                     <form class="chat-input-form" id="chatForm">
-                        <input type="text" class="chat-input" id="chatInput" placeholder="Ask or tap the mic...">
-                        <button type="button" class="mic-btn" id="micBtn"><i class="fas fa-microphone"></i></button>
-                        <button type="submit" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Ask about your spending...">
+                        <button type="button" class="chat-btn mic-btn" id="micBtn"><i class="fas fa-microphone"></i></button>
+                        <button type="submit" class="chat-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
                     </form>
                 </div>
             </div>
-        </div>
+        </main>
+
         <nav class="tab-nav">
-            <div class="tab-link active" data-tab="scan">Scan</div>
-            <div class="tab-link" data-tab="list">List</div>
-            <div class="tab-link" data-tab="chatbot">Chatbot</div>
+            <div class="tab-link active" data-tab="scan"><i class="fas fa-camera"></i>Scan</div>
+            <div class="tab-link" data-tab="list"><i class="fas fa-list-ul"></i>List</div>
+            <div class="tab-link" data-tab="chatbot"><i class="fas fa-comment-dots"></i>Chat</div>
         </nav>
     </div>
 
-     <div class="processing-overlay" id="processingOverlay" style="display: none;">
+    <!-- Processing Overlay -->
+    <div class="processing-overlay" id="processingOverlay">
         <div class="spinner"></div>
         <p>Analyzing Receipt...</p>
     </div>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-
+            // --- CSRF Token Helper ---
             function getCookie(name) {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {
@@ -356,7 +387,7 @@
             }
             const csrftoken = getCookie('csrftoken');
 
-
+            // --- DOM Element References ---
             const tabs = document.querySelectorAll('.tab-link');
             const contents = document.querySelectorAll('.tab-content');
             const scanBtn = document.getElementById('scanBtn');
@@ -366,28 +397,30 @@
             const resultsScreen = document.getElementById('resultsScreen');
             const contentArea = document.getElementById('content-area');
 
+            // --- Tab Navigation ---
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     tabs.forEach(item => item.classList.remove('active'));
                     contents.forEach(content => content.classList.remove('active'));
                     tab.classList.add('active');
-                    const activeTab = document.getElementById(tab.dataset.tab);
-                    activeTab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
                     contentArea.scrollTop = 0;
                     if (tab.dataset.tab === 'list') fetchAndRenderData();
                     if (tab.dataset.tab === 'scan') showMainView();
                 });
             });
 
+            // --- Scan and Process Logic ---
             scanBtn.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', (event) => {
-                if (event.target.files.length > 0) processImage(event.target.files[0]);
+            fileInput.addEventListener('change', e => {
+                if (e.target.files.length > 0) processImage(e.target.files[0]);
             });
 
             function processImage(file) {
                 const formData = new FormData();
                 formData.append('image', file);
-                processingOverlay.style.display = 'flex';
+                processingOverlay.classList.add('visible');
+
                 fetch('/api/process/', {
                     method: 'POST',
                     headers: { 'X-CSRFToken': csrftoken },
@@ -398,41 +431,47 @@
                     return response.json();
                 })
                 .then(data => {
-                    processingOverlay.style.display = 'none';
-                    if (data.error) return alert(`Error: ${data.error}`);
+                    if (data.error) throw new Error(data.error);
                     displayResults(data.json_data);
                 })
-                .catch(error => {
-                    processingOverlay.style.display = 'none';
-                    console.error('Error:', error);
-                    let errorMessage = "An unexpected error occurred.";
-                    try {
-                        const errorJson = JSON.parse(error.message);
-                        errorMessage = `Upload failed: ${errorJson.error || errorJson.image[0]}`;
-                    } catch (e) {
-                        errorMessage = "Server error. Please try again later.";
+                .catch(handleError)
+                .finally(() => processingOverlay.classList.remove('visible'));
+            }
+
+            function handleError(error) {
+                console.error('Error:', error);
+                let errorMessage = "An unexpected error occurred.";
+                try {
+                    const errorJson = JSON.parse(error.message);
+                    errorMessage = `Upload failed: ${errorJson.error || (errorJson.image && errorJson.image[0]) || 'Unknown error'}`;
+                } catch (e) {
+                    if (error.message.includes('<')) {
+                       errorMessage = "Server error. Please check server logs.";
+                    } else {
+                       errorMessage = error.message;
                     }
-                    alert(errorMessage);
-                });
+                }
+                alert(errorMessage);
             }
 
             function displayResults(data) {
                 const resultsHTML = `
                 <div class="results-container">
-                    <div class="back-arrow" id="backBtn">←</div>
-                    <div class="merchant-details">
-                        <div class="merchant-icon">📄</div>
+                    <div class="back-arrow" id="backBtn"><i class="fas fa-arrow-left"></i> Back to Scan</div>
+                    <div class="results-header">
+                        <i class="fas fa-file-invoice-dollar"></i>
                         <div class="merchant-name">${data['Merchant Name'] || 'N/A'}</div>
-                        <div class="transaction-date">${data['Transaction Date'] || 'N/A'}</div>
+                        <div class="transaction-date">${data['Transaction Date'] || ''} ${data['Transaction Time'] || ''}</div>
                     </div>
                     <div class="total-section">
-                        <span>Total</span>
+                        <span>Total Paid</span>
                         <span>₹${data['Total Amount'] || '0.00'}</span>
                     </div>
                     <div class="items-list">
-                        ${(data.Items || []).map(item => `<div class="item"><span>${item.Item}</span><span>₹${item.Price}</span></div>`).join('')}
+                        <h3>Details</h3>
+                        ${(data.Items && data.Items.length > 0) ? data.Items.map(item => `<div class="item"><span>${item.Item}</span><span>₹${item.Price}</span></div>`).join('') : '<div class="item"><span>No item details found.</span></div>'}
                     </div>
-                    <div class="category-section"><span class="category-tag">${data.Category || 'General'}</span></div>
+                    ${data.Category ? `<div class="category-section"><span class="category-tag">${data.Category}</span></div>` : ''}
                 </div>`;
                 resultsScreen.innerHTML = resultsHTML;
                 mainView.style.display = 'none';
@@ -446,11 +485,12 @@
                 fileInput.value = '';
             }
 
-             const dataTableBody = document.querySelector('#dataTable tbody');
-             function fetchAndRenderData() {
+            // --- List Data Logic ---
+            const dataTableBody = document.querySelector('#dataTable tbody');
+            function fetchAndRenderData() {
                 fetch('/api/receipts/')
                     .then(response => response.json())
-                    .then(data => renderDataTable(data))
+                    .then(renderDataTable)
                     .catch(error => {
                         console.error('Error fetching receipt data:', error);
                         dataTableBody.innerHTML = '<tr><td colspan="3">Could not load data.</td></tr>';
@@ -458,28 +498,24 @@
             }
 
             function renderDataTable(receipts) {
-                dataTableBody.innerHTML = !receipts || receipts.length === 0 ? '<tr><td colspan="3" style="text-align: center;">No receipts found.</td></tr>' : '';
-                if (receipts) {
-                    receipts.forEach(receipt => {
-                        const jsonData = receipt.json_data;
-                        if (jsonData) {
-                            const totalAmount = jsonData['Total Amount'] ? parseFloat(jsonData['Total Amount']).toFixed(2) : 'N/A';
-                            const row = document.createElement('tr');
-                            row.innerHTML = `<td>${jsonData['Merchant Name'] || 'N/A'}</td><td>${jsonData['Transaction Date'] || 'N/A'}</td><td>₹${totalAmount}</td>`;
-                            dataTableBody.appendChild(row);
-                        }
-                    });
-                }
+                dataTableBody.innerHTML = (!receipts || receipts.length === 0) ? '<tr><td colspan="3" style="text-align: center;">No receipts found.</td></tr>' :
+                receipts.map(receipt => {
+                    const jsonData = receipt.json_data || {};
+                    const totalAmount = jsonData['Total Amount'] ? parseFloat(jsonData['Total Amount']).toFixed(2) : 'N/A';
+                    return `<tr>
+                                <td>${jsonData['Merchant Name'] || 'N/A'}</td>
+                                <td>${jsonData['Transaction Date'] || 'N/A'}</td>
+                                <td>₹${totalAmount}</td>
+                            </tr>`;
+                }).join('');
             }
 
-
-            // --- Chatbot Logic with Voice Search ---
+            // --- Chatbot Logic with Voice ---
             const chatForm = document.getElementById('chatForm');
             const chatInput = document.getElementById('chatInput');
             const chatMessages = document.getElementById('chatMessages');
             const micBtn = document.getElementById('micBtn');
 
-            // Check for Web Speech API support
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
                 const recognition = new SpeechRecognition();
@@ -487,75 +523,62 @@
                 recognition.lang = 'en-US';
                 recognition.interimResults = false;
 
-                micBtn.addEventListener('click', () => {
-                    recognition.start();
-                });
-
+                micBtn.addEventListener('click', () => recognition.start());
                 recognition.addEventListener('start', () => {
                     micBtn.classList.add('is-listening');
                     chatInput.placeholder = 'Listening...';
                 });
-
                 recognition.addEventListener('end', () => {
                     micBtn.classList.remove('is-listening');
-                    chatInput.placeholder = 'Ask or tap the mic...';
+                    chatInput.placeholder = 'Ask about your spending...';
                 });
-
-                recognition.addEventListener('result', (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    chatInput.value = transcript;
-                    // Automatically submit the form with the transcribed text
+                recognition.addEventListener('result', (e) => {
+                    chatInput.value = e.results[0][0].transcript;
                     chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
                 });
-
             } else {
-                // Hide the mic button if the browser doesn't support the API
                 micBtn.style.display = 'none';
             }
 
             chatForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const message = chatInput.value.trim();
-                if (!message) return;
-
-                sendMessageToBot(message);
-                chatInput.value = '';
+                if (message) {
+                    sendMessageToBot(message);
+                    chatInput.value = '';
+                }
             });
 
             function sendMessageToBot(messageText) {
                 appendMessage(messageText, 'user');
                 appendMessage("Thinking...", 'bot', true);
-
                 fetch('/api/chatbot/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
                     body: JSON.stringify({ query: messageText }),
                 })
                 .then(response => response.json())
                 .then(data => updateLastBotMessage(data.response))
                 .catch(error => {
                      console.error('Error:', error);
-                     updateLastBotMessage("Sorry, I'm having trouble connecting.");
+                     updateLastBotMessage("Sorry, something went wrong.");
                 });
             }
 
-             function appendMessage(message, sender, isThinking = false) {
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
-                if (isThinking) messageElement.id = 'thinking-message';
-                messageElement.innerText = message;
-                chatMessages.appendChild(messageElement);
+            function appendMessage(text, sender, isThinking = false) {
+                const msgEl = document.createElement('div');
+                msgEl.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+                if (isThinking) msgEl.id = 'thinking-message';
+                msgEl.innerText = text;
+                chatMessages.appendChild(msgEl);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
             function updateLastBotMessage(text) {
-                const thinkingMessage = document.getElementById('thinking-message');
-                if (thinkingMessage) {
-                    thinkingMessage.innerText = text;
-                    thinkingMessage.id = '';
+                const thinkingMsg = document.getElementById('thinking-message');
+                if (thinkingMsg) {
+                    thinkingMsg.innerText = text;
+                    thinkingMsg.id = '';
                 }
             }
         });
