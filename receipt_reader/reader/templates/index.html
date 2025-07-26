@@ -332,9 +332,49 @@
         #reportContainer {
             text-align: center;
             color: var(--slate-gray);
-            padding-top: 40px;
+            padding-top: 20px; /* Adjusted padding */
         }
-
+        /* --- NEW: Report Filter Form --- */
+        #reportFilterForm {
+            margin-bottom: 20px;
+            background-color: var(--mid-blue);
+            padding: 15px;
+            border-radius: 12px;
+        }
+        .date-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .date-inputs input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            background-color: var(--dark-blue);
+            border: 1px solid var(--light-blue);
+            color: var(--light-gray);
+            border-radius: 8px;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .filter-buttons button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .filter-buttons button[type="submit"] {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .filter-buttons button[type="button"] {
+            background-color: var(--slate-gray);
+            color: var(--dark-blue);
+        }
     </style>
 </head>
 <body>
@@ -383,6 +423,17 @@
             <div id="report" class="tab-content">
                 <div class="page-container">
                     <h2>Expense Report</h2>
+                    <!-- NEW: Filter Form -->
+                    <form id="reportFilterForm">
+                        <div class="date-inputs">
+                            <input type="date" id="startDate" name="start_date">
+                            <input type="date" id="endDate" name="end_date">
+                        </div>
+                        <div class="filter-buttons">
+                            <button type="submit">Filter Report</button>
+                            <button type="button" id="resetReportBtn">Show All</button>
+                        </div>
+                    </form>
                     <div id="reportContainer">
                         <!-- Report will be generated here -->
                     </div>
@@ -454,17 +505,18 @@
                     document.getElementById(tab.dataset.tab).classList.add('active');
                     contentArea.scrollTop = 0;
 
-                    // --- NEW: Call specific functions when tabs are activated ---
                     if (tab.dataset.tab === 'list') fetchAndRenderData();
-                    if (tab.dataset.tab === 'report') generateAndRenderReport();
+                    if (tab.dataset.tab === 'report') generateAndRenderReport(); // Fetches all on tab open
                     if (tab.dataset.tab === 'scan') showMainView();
                 });
             });
 
             // --- Scan and Process Logic ---
             scanBtn.addEventListener('click', () => fileInput.click());
+
+            // --- THIS IS THE FIX ---
             fileInput.addEventListener('change', e => {
-                if (e.target.files.length > 0) processImage(e.target.files);
+                if (e.target.files.length > 0) processImage(e.target.files[0]);
             });
 
             function processImage(file) {
@@ -522,7 +574,6 @@
                         <h3>Details</h3>
                         ${(data.Items && data.Items.length > 0) ? data.Items.map(item => `<div class="item"><span>${item.Item}</span><span>₹${item.Price}</span></div>`).join('') : '<div class="item"><span>No item details found.</span></div>'}
                     </div>
-                    ${data.Category ? `<div class="category-section"><span class="category-tag">${data.Category}</span></div>` : ''}
                 </div>`;
                 resultsScreen.innerHTML = resultsHTML;
                 mainView.style.display = 'none';
@@ -561,11 +612,26 @@
                 }).join('');
             }
 
-            // --- NEW: Expense Report Logic ---
+            // --- UPDATED: Expense Report Logic ---
             const reportContainer = document.getElementById('reportContainer');
-            function generateAndRenderReport() {
+            const reportFilterForm = document.getElementById('reportFilterForm');
+            const resetReportBtn = document.getElementById('resetReportBtn');
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
+            function generateAndRenderReport(startDate = null, endDate = null) {
                 reportContainer.innerHTML = '<div class="spinner"></div><p>Generating Report...</p>';
-                fetch('/api/expense-report/')
+
+                let url = '/api/expense-report/';
+                if (startDate && endDate) {
+                    const params = new URLSearchParams({
+                        start_date: startDate,
+                        end_date: endDate
+                    });
+                    url += `?${params.toString()}`;
+                }
+
+                fetch(url)
                     .then(response => {
                         if (!response.ok) {
                             return response.json().then(err => { throw new Error(err.error) });
@@ -579,14 +645,29 @@
                     });
             }
 
-            function renderReport(data) {
-                if (!data || (!data.most_expensive && !data.least_expensive)) {
-                    reportContainer.innerHTML = '<p>Not enough data to generate a report.</p>';
+            reportFilterForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+                if (!startDate || !endDate) {
+                    alert('Please select both a start and end date.');
                     return;
                 }
+                generateAndRenderReport(startDate, endDate);
+            });
 
+            resetReportBtn.addEventListener('click', () => {
+                startDateInput.value = '';
+                endDateInput.value = '';
+                generateAndRenderReport();
+            });
+
+            function renderReport(data) {
+                if (!data || (!data.most_expensive && !data.least_expensive)) {
+                    reportContainer.innerHTML = '<p>Not enough data to generate a report for this period.</p>';
+                    return;
+                }
                 let reportHTML = '';
-
                 if (data.most_expensive) {
                     const item = data.most_expensive;
                     reportHTML += `
@@ -597,7 +678,6 @@
                         <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div>
                     </div>`;
                 }
-
                 if (data.least_expensive) {
                     const item = data.least_expensive;
                     reportHTML += `
@@ -608,7 +688,6 @@
                         <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div>
                     </div>`;
                 }
-
                 reportContainer.innerHTML = reportHTML;
             }
 
@@ -635,7 +714,7 @@
                     chatInput.placeholder = 'Ask about your spending...';
                 });
                 recognition.addEventListener('result', (e) => {
-                    chatInput.value = e.results.transcript;
+                    chatInput.value = e.results[0][0].transcript;
                     chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
                 });
             } else {
