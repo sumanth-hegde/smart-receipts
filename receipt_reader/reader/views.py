@@ -2,20 +2,20 @@ import google.generativeai as genai
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ReceiptSerializer, MonthlyBudgetSerializer  # <-- Import new serializer
+from .serializers import ReceiptSerializer, MonthlyBudgetSerializer
 import os
 from dotenv import load_dotenv
 from django.shortcuts import render
 import json
-from .models import Receipt, MonthlyBudget  # <-- Import new model
+from .models import Receipt, MonthlyBudget
 from datetime import datetime
 from decimal import Decimal
-from collections import defaultdict # <-- Import defaultdict
-
+from collections import defaultdict
+# --- IMPORT BOTH AGENTS ---
+from .agents import ReceiptScanningAgent, ChatbotAgent
 
 load_dotenv()
 
-# Configure the Gemini API
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 
@@ -34,44 +34,12 @@ class ReceiptProcessView(APIView):
             image_path = receipt_instance.image.path
 
             try:
-                model = genai.GenerativeModel("gemini-1.5-flash")
-                image_file = genai.upload_file(path=image_path)
-
-                # --- UPDATED PROMPT WITH CATEGORIZATION ---
-                prompt = """
-                Analyze the provided receipt or invoice image. Your task is to meticulously extract the information below and format it into a precise JSON object.
-                Based on the merchant's name and the items purchased, determine the most logical spending category.
-
-                **JSON Fields to Extract:**
-                - "Merchant Name": The name of the store or service provider.
-                - "Transaction Date": The date of the transaction in YYYY-MM-DD format.
-                - "Transaction Time": The time of the transaction.
-                - "Items": A JSON array of objects. Each object must contain an "Item" (the name or description) and its corresponding "Price".
-                - "Subtotal": The total cost *before* taxes are applied.
-                - "Tax": The total tax amount. If multiple taxes are present, sum them together.
-                - "Total Amount": The final, grand total paid.
-                - "Category": Classify the expense into one of the following categories: "Food & Dining", "Transportation", "Groceries", "Shopping", "Utilities", "Health", "Entertainment", or "Other".
-
-                **Important Rules:**
-                1.  If a field's value is not present on the receipt, its value in the JSON must be `null`.
-                2.  If no individual items can be identified, "Items" should be an empty array `[]`.
-                3.  Your entire response must be **only the raw JSON object**. Do not wrap it in markdown fences like ```json or add any other explanatory text.
-                """
-
-
-                response = model.generate_content([prompt, image_file])
-
-                cleaned_response_text = response.text.strip().replace("```json", "").replace("```", "")
-                json_response = json.loads(cleaned_response_text)
-
-                # --- SAVE EXTRACTED DATA AND THE NEW CATEGORY ---
+                agent = ReceiptScanningAgent()
+                json_response = agent.process_receipt(image_path)
                 receipt_instance.json_data = json_response
-                receipt_instance.category = json_response.get('Category', 'Other') # Default to 'Other'
+                receipt_instance.category = json_response.get('Category', 'Other')
                 receipt_instance.save()
-
-
                 return Response(ReceiptSerializer(receipt_instance).data, status=status.HTTP_201_CREATED)
-
             except Exception as e:
                 return Response({'error': f"An error occurred during processing: {str(e)}"},
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -86,6 +54,7 @@ class ReceiptListView(APIView):
         return Response(serializer.data)
 
 
+# --- UPDATED CHATBOT VIEW USING THE NEW AGENT ---
 class ChatbotView(APIView):
     def post(self, request, *args, **kwargs):
         query = request.data.get('query')
@@ -95,44 +64,21 @@ class ChatbotView(APIView):
             return Response({'error': 'A query is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # 1. Gather all necessary data
             receipts = Receipt.objects.all().order_by('-uploaded_at')
-            serializer = ReceiptSerializer(receipts, many=True)
             receipts_data = "[]"
             if receipts.exists():
+                serializer = ReceiptSerializer(receipts, many=True)
                 receipts_data = json.dumps(serializer.data)
 
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            # 2. Instantiate the new, specialized agent
+            agent = ChatbotAgent()
 
-            formatted_history = ""
-            for message in history:
-                role = "User" if message.get('sender') == 'user' else "You"
-                formatted_history += f"{role}: {message.get('text')}\n"
+            # 3. Delegate the entire conversation logic to the agent
+            response_text = agent.get_response(query, history, receipts_data)
 
-            # --- START: PROMPT UPDATED FOR CONCISENESS ---
-            prompt = f"""
-            You are a friendly and helpful AI assistant specializing in personal finance. You are having a conversation with a user. Make it short, give the main points only.
-
-            **Your Role & Rules:**
-            1.  **Maintain Context:** Use the "Previous Conversation" to understand follow-up questions.
-            2.  **Prioritize User Data:** First, always try to answer the user's question using their personal "Receipt Data".
-            3.  **Provide General Advice:** If the question is for general advice and cannot be answered from the receipt data, use your own knowledge to provide helpful, actionable tips.
-            4.  **Be Concise and Clear:** Keep your answers brief. When giving a list of suggestions, use bullet points (`*`) for easy reading. Avoid long introductory or concluding paragraphs.
-            5.  **Be Conversational:** Keep your tone friendly and helpful.
-            6.  **Currency:** All financial figures must be in Rupees (₹).
-
-            **Receipt Data (JSON):**
-            {receipts_data}
-
-            **Previous Conversation:**
-            {formatted_history}
-
-            **User's New Message:**
-            "{query}"
-            """
-            # --- END: PROMPT UPDATED FOR CONCISENESS ---
-
-            response = model.generate_content(prompt)
-            return Response({'response': response.text})
+            # 4. Return the agent's response
+            return Response({'response': response_text})
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -211,14 +157,13 @@ class ExpenseReportView(APIView):
         return Response(report, status=status.HTTP_200_OK)
 
 
-# --- NEW VIEW FOR MANAGING BUDGET ---
 class BudgetView(APIView):
     def get(self, request, *args, **kwargs):
         year = request.query_params.get('year', datetime.now().year)
         month = request.query_params.get('month', datetime.now().month)
         budget, _ = MonthlyBudget.objects.get_or_create(
             year=year, month=month,
-            defaults={'limit': Decimal('0.00')}  # Default to 0 if not set
+            defaults={'limit': Decimal('0.00')}
         )
         serializer = MonthlyBudgetSerializer(budget)
         return Response(serializer.data)
@@ -239,7 +184,6 @@ class BudgetView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
-# --- UPDATED VIEW FOR THE EXPENSE TRACKER PAGE ---
 class ExpenseTrackerView(APIView):
     def get(self, request, *args, **kwargs):
         today = datetime.now()
@@ -253,7 +197,6 @@ class ExpenseTrackerView(APIView):
 
         monthly_receipts = []
         total_spent = Decimal('0.00')
-        # --- NEW: Use defaultdict to sum spending by category ---
         category_summary = defaultdict(Decimal)
         most_expensive_item = {'Price': -1}
 
@@ -268,7 +211,6 @@ class ExpenseTrackerView(APIView):
                         monthly_receipts.append(receipt)
                         total = Decimal(str(receipt.json_data.get('Total Amount', 0)))
                         total_spent += total
-                        # --- NEW: Aggregate spending into categories ---
                         category_summary[receipt.category or 'Other'] += total
 
 
@@ -300,13 +242,11 @@ class ExpenseTrackerView(APIView):
             except Exception as e:
                 suggestion = f"Could not fetch suggestions at this time. Error: {str(e)}"
 
-        # --- UPDATED RESPONSE ---
         response_data = {
             'budget': MonthlyBudgetSerializer(budget).data,
             'total_spent': total_spent,
             'transactions': ReceiptSerializer(monthly_receipts, many=True).data,
             'suggestion': suggestion,
-            # --- NEW: Add category summary to the response ---
             'category_summary': category_summary
         }
 
