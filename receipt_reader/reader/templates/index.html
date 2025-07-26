@@ -298,6 +298,43 @@
         }
         .mic-btn.is-listening { color: var(--danger-color); }
 
+        /* --- EXPENSE REPORT STYLES --- */
+        .report-card {
+            background-color: var(--mid-blue);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .report-card h3 {
+            color: var(--accent-color);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .report-card.danger h3 { color: var(--danger-color); }
+        .report-card.success h3 { color: var(--success-color); }
+        .report-item-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--light-gray);
+        }
+        .report-item-price {
+            font-size: 20px;
+            font-weight: 500;
+            color: white;
+            margin-top: 5px;
+        }
+        .report-item-details {
+            font-size: 14px;
+            color: var(--slate-gray);
+            margin-top: 10px;
+        }
+        #reportContainer {
+            text-align: center;
+            color: var(--slate-gray);
+            padding-top: 40px;
+        }
+
     </style>
 </head>
 <body>
@@ -342,6 +379,16 @@
                 </div>
             </div>
 
+            <!-- Report Tab Content -->
+            <div id="report" class="tab-content">
+                <div class="page-container">
+                    <h2>Expense Report</h2>
+                    <div id="reportContainer">
+                        <!-- Report will be generated here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Chatbot Tab Content -->
             <div id="chatbot" class="tab-content">
                 <div class="page-container chatbot-container">
@@ -358,6 +405,7 @@
         <nav class="tab-nav">
             <div class="tab-link active" data-tab="scan"><i class="fas fa-camera"></i>Scan</div>
             <div class="tab-link" data-tab="list"><i class="fas fa-list-ul"></i>List</div>
+            <div class="tab-link" data-tab="report"><i class="fas fa-chart-pie"></i>Report</div>
             <div class="tab-link" data-tab="chatbot"><i class="fas fa-comment-dots"></i>Chat</div>
         </nav>
     </div>
@@ -405,7 +453,10 @@
                     tab.classList.add('active');
                     document.getElementById(tab.dataset.tab).classList.add('active');
                     contentArea.scrollTop = 0;
+
+                    // --- NEW: Call specific functions when tabs are activated ---
                     if (tab.dataset.tab === 'list') fetchAndRenderData();
+                    if (tab.dataset.tab === 'report') generateAndRenderReport();
                     if (tab.dataset.tab === 'scan') showMainView();
                 });
             });
@@ -413,7 +464,7 @@
             // --- Scan and Process Logic ---
             scanBtn.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', e => {
-                if (e.target.files.length > 0) processImage(e.target.files[0]);
+                if (e.target.files.length > 0) processImage(e.target.files);
             });
 
             function processImage(file) {
@@ -510,6 +561,57 @@
                 }).join('');
             }
 
+            // --- NEW: Expense Report Logic ---
+            const reportContainer = document.getElementById('reportContainer');
+            function generateAndRenderReport() {
+                reportContainer.innerHTML = '<div class="spinner"></div><p>Generating Report...</p>';
+                fetch('/api/expense-report/')
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw new Error(err.error) });
+                        }
+                        return response.json();
+                    })
+                    .then(renderReport)
+                    .catch(error => {
+                        console.error('Error generating report:', error);
+                        reportContainer.innerHTML = `<p>${error.message}</p>`;
+                    });
+            }
+
+            function renderReport(data) {
+                if (!data || (!data.most_expensive && !data.least_expensive)) {
+                    reportContainer.innerHTML = '<p>Not enough data to generate a report.</p>';
+                    return;
+                }
+
+                let reportHTML = '';
+
+                if (data.most_expensive) {
+                    const item = data.most_expensive;
+                    reportHTML += `
+                    <div class="report-card danger">
+                        <h3><i class="fas fa-arrow-trend-up"></i> Most Expensive Purchase</h3>
+                        <div class="report-item-name">${item.Item}</div>
+                        <div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div>
+                        <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div>
+                    </div>`;
+                }
+
+                if (data.least_expensive) {
+                    const item = data.least_expensive;
+                    reportHTML += `
+                    <div class="report-card success">
+                        <h3><i class="fas fa-arrow-trend-down"></i> Least Expensive Purchase</h3>
+                        <div class="report-item-name">${item.Item}</div>
+                        <div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div>
+                        <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div>
+                    </div>`;
+                }
+
+                reportContainer.innerHTML = reportHTML;
+            }
+
             // --- Chatbot Logic with Voice ---
             const chatForm = document.getElementById('chatForm');
             const chatInput = document.getElementById('chatInput');
@@ -533,7 +635,7 @@
                     chatInput.placeholder = 'Ask about your spending...';
                 });
                 recognition.addEventListener('result', (e) => {
-                    chatInput.value = e.results[0][0].transcript;
+                    chatInput.value = e.results.transcript;
                     chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
                 });
             } else {

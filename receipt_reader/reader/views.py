@@ -116,3 +116,59 @@ class ChatbotView(APIView):
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# --- NEW VIEW FOR EXPENSE REPORT ---
+class ExpenseReportView(APIView):
+    def get(self, request, *args, **kwargs):
+        receipts = Receipt.objects.all()
+        if not receipts.exists():
+            return Response({"error": "No receipts available to generate a report."}, status=status.HTTP_404_NOT_FOUND)
+
+        most_expensive_item = None
+        least_expensive_item = None
+        max_price = -1
+        min_price = float('inf')
+
+        for receipt in receipts:
+            data = receipt.json_data
+            # Ensure data and Items list exist and are not empty
+            if data and 'Items' in data and isinstance(data['Items'], list):
+                for item in data['Items']:
+                    try:
+                        # Ensure item is a dict and has Price
+                        if isinstance(item, dict) and 'Price' in item and item['Price'] is not None:
+                            price = float(item['Price'])
+
+                            # Check for most expensive
+                            if price > max_price:
+                                max_price = price
+                                most_expensive_item = {
+                                    'Item': item.get('Item', 'N/A'),
+                                    'Price': price,
+                                    'Merchant': data.get('Merchant Name', 'N/A'),
+                                    'Date': data.get('Transaction Date', 'N/A')
+                                }
+
+                            # Check for least expensive
+                            if price < min_price:
+                                min_price = price
+                                least_expensive_item = {
+                                    'Item': item.get('Item', 'N/A'),
+                                    'Price': price,
+                                    'Merchant': data.get('Merchant Name', 'N/A'),
+                                    'Date': data.get('Transaction Date', 'N/A')
+                                }
+                    except (ValueError, TypeError):
+                        # Ignore items where price is not a valid number
+                        continue
+
+        if not most_expensive_item and not least_expensive_item:
+            return Response({"error": "Could not find any valid items to generate a report."},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        report = {
+            'most_expensive': most_expensive_item,
+            'least_expensive': least_expensive_item
+        }
+        return Response(report, status=status.HTTP_200_OK)
