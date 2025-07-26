@@ -9,304 +9,140 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <style>
-        /* --- MASTER RESET & MATERIAL DESIGN THEME --- */
-        :root {
-            --primary-color: #4285F4; /* Google Blue */
-            --primary-variant: #3367D6;
-            --secondary-color: #0F9D58; /* Google Green */
-            --background-color: #f1f3f4; /* Light Gray */
-            --surface-color: #ffffff; /* White Cards/Surfaces */
-            --on-primary-color: #ffffff;
-            --on-surface-color: #202124; /* Dark Gray Text */
-            --on-surface-variant-color: #5f6368; /* Lighter Gray Text */
-            --danger-color: #EA4335; /* Google Red */
-            --border-color: #dfe1e5;
+    <!-- --- NEW: ADD CHART.JS LIBRARY --- -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-            --font-family: 'Roboto', sans-serif;
-            --border-radius: 12px;
+    <style>
+        :root {
+            --primary-color: #4285F4; --primary-variant: #3367D6;
+            --secondary-color: #0F9D58; --background-color: #f1f3f4;
+            --surface-color: #ffffff; --on-primary-color: #ffffff;
+            --on-surface-color: #202124; --on-surface-variant-color: #5f6368;
+            --danger-color: #EA4335; --warning-color: #F9AB00; --border-color: #dfe1e5;
+            --font-family: 'Roboto', sans-serif; --border-radius: 12px;
             --shadow-1: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
             --shadow-2: 0 4px 8px 3px rgba(60,64,67,.15), 0 1px 3px 0 rgba(60,64,67,.3);
             --transition-speed: 0.3s;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html {
-            height: -webkit-fill-available;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html { height: -webkit-fill-available; }
         body {
-            font-family: var(--font-family);
-            background-color: var(--background-color);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
+            font-family: var(--font-family); background-color: var(--background-color);
+            margin: 0; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; min-height: -webkit-fill-available;
         }
-
-        /* --- MAIN APP CONTAINER --- */
         .app-container {
-            width: 100%;
-            max-width: 420px;
-            background-color: var(--background-color);
-            border-radius: 24px;
-            box-shadow: 0 12px 50px -12px rgba(0,0,0,0.4);
-            overflow: hidden;
-            height: 100vh;
-            max-height: 900px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            width: 100%; max-width: 420px; background-color: var(--background-color);
+            border-radius: 24px; box-shadow: 0 12px 50px -12px rgba(0,0,0,0.4);
+            overflow: hidden; height: 100vh; max-height: 900px;
+            display: flex; flex-direction: column; position: relative;
         }
-
-        /* --- APP HEADER --- */
         .app-header {
-            background-color: var(--surface-color);
-            color: var(--on-surface-color);
-            padding: 16px 20px;
-            text-align: center;
-            flex-shrink: 0;
-            border-bottom: 1px solid var(--border-color);
-            z-index: 10;
+            background-color: var(--surface-color); color: var(--on-surface-color);
+            padding: 14px 20px; text-align: center; flex-shrink: 0;
+            border-bottom: 1px solid var(--border-color); z-index: 10;
         }
         .app-header h1 {
-            font-size: 22px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 20px; /* <-- Size reduced */ font-weight: 500;
+            display: flex; align-items: center; justify-content: center;
         }
         .app-header .material-icons {
-            margin-right: 8px;
-            color: var(--primary-color);
+            margin-right: 8px; color: var(--primary-color); font-size: 22px; /* <-- Size reduced */
         }
-
-        /* --- CONTENT AREA & TAB CONTENT --- */
         .content-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            position: relative;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
+            flex-grow: 1; overflow-y: auto; position: relative; padding: 20px;
+            display: flex; flex-direction: column;
         }
-        .tab-content {
-            display: none;
-            flex-grow: 1;
-            flex-direction: column; /* For flex children to grow */
-        }
-        .tab-content.active {
-            display: flex;
-        }
-
-
-        /* --- BOTTOM NAVIGATION --- */
+        .tab-content { display: none; flex-grow: 1; flex-direction: column; }
+        .tab-content.active { display: flex; }
         .tab-nav {
-            display: flex;
-            background-color: var(--surface-color);
-            flex-shrink: 0;
-            border-top: 1px solid var(--border-color);
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-            z-index: 10;
+            display: flex; background-color: var(--surface-color); flex-shrink: 0;
+            border-top: 1px solid var(--border-color); box-shadow: 0 -2px 5px rgba(0,0,0,0.05); z-index: 10;
         }
         .tab-link {
-            flex: 1;
-            padding: 8px 10px 12px;
-            text-align: center;
-            cursor: pointer;
-            color: var(--on-surface-variant-color);
-            transition: color 0.2s, background-color 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
+            flex: 1; padding: 8px 10px 12px; text-align: center; cursor: pointer;
+            color: var(--on-surface-variant-color); transition: color 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
-        .tab-link .tab-label {
-            font-size: 12px;
-            font-weight: 500;
-        }
-        .tab-link.active {
-            color: var(--primary-color);
-        }
-
-
-        /* --- FLOATING ACTION BUTTON (FAB) --- */
+        .tab-link .tab-label { font-size: 12px; font-weight: 500; }
+        .tab-link.active { color: var(--primary-color); }
         #scanBtn {
-            position: absolute;
-            bottom: 80px; /* Above nav bar */
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            background-color: var(--primary-color);
-            color: var(--on-primary-color);
-            border-radius: 50%;
-            border: none;
-            box-shadow: var(--shadow-2);
-            display: flex; /* Initially flex to be toggled to none */
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            z-index: 100;
+            position: absolute; bottom: 80px; right: 24px; width: 56px; height: 56px;
+            background-color: var(--primary-color); color: var(--on-primary-color);
+            border-radius: 50%; border: none; box-shadow: var(--shadow-2);
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease; z-index: 100;
         }
-        #scanBtn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 12px 4px rgba(60,64,67,.2), 0 2px 4px 1px rgba(60,64,67,.35);
-        }
+        #scanBtn:hover { transform: scale(1.05); }
         #scanBtn .material-icons { font-size: 28px; }
-
-
-        /* --- SCAN TAB STYLES --- */
         #scan-page { justify-content: center; }
         .scan-container {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 16px;
+            text-align: center; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; gap: 16px;
             color: var(--on-surface-variant-color);
         }
-        .scan-container .material-icons {
-            font-size: 80px;
-            color: var(--border-color);
-        }
-        .scan-container h2 {
-            font-size: 24px;
-            font-weight: 500;
-            color: var(--on-surface-color);
-        }
-
-        /* --- PROCESSING OVERLAY --- */
+        .scan-container .material-icons { font-size: 80px; color: var(--border-color); }
+        .scan-container h2 { font-size: 22px; font-weight: 500; color: var(--on-surface-color); }
         .processing-overlay {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            color: white;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            font-size: 18px;
-            opacity: 0;
-            transition: opacity 0.3s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+            color: white; display: none; flex-direction: column; justify-content: center;
+            align-items: center; z-index: 1000; font-size: 18px; opacity: 0; transition: opacity 0.3s;
         }
         .processing-overlay.visible { display: flex; opacity: 1; }
         .spinner {
-            width: 48px; height: 48px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-top-color: var(--surface-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            width: 48px; height: 48px; border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--surface-color); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* --- RESULTS SCREEN (Part of Scan Tab) --- */
         #resultsScreen { display: none; }
-        .results-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .results-header .back-arrow {
-            color: var(--on-surface-variant-color);
-            cursor: pointer;
-            padding: 8px;
-        }
-        .results-header h2 {
-            font-size: 20px;
-            font-weight: 500;
-            margin-left: 16px;
-            color: var(--on-surface-color);
-        }
+        .results-header { display: flex; align-items: center; margin-bottom: 24px; }
+        .results-header .back-arrow { color: var(--on-surface-variant-color); cursor: pointer; padding: 8px; }
+        .results-header h2 { font-size: 20px; font-weight: 500; margin-left: 16px; color: var(--on-surface-color); }
         .receipt-card {
-            background-color: var(--surface-color);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-1);
-            padding: 20px;
-            margin-bottom: 24px;
+            background-color: var(--surface-color); border-radius: var(--border-radius);
+            box-shadow: var(--shadow-1); padding: 20px; margin-bottom: 24px;
         }
-        .receipt-card .merchant-name {
-            font-size: 24px; font-weight: 700;
-            color: var(--on-surface-color); margin-bottom: 4px;
-        }
-        .receipt-card .transaction-date {
-            color: var(--on-surface-variant-color); font-size: 14px; margin-bottom: 20px;
-        }
+        .receipt-card .merchant-name { font-size: 22px; font-weight: 700; color: var(--on-surface-color); margin-bottom: 4px; }
+        .receipt-card .transaction-date { color: var(--on-surface-variant-color); font-size: 14px; margin-bottom: 20px; }
         .receipt-card .total-section {
-            display: flex; justify-content: space-between; align-items: baseline;
-            font-size: 28px; font-weight: 700; color: var(--primary-color);
-            padding-top: 16px; border-top: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: baseline; font-size: 26px;
+            font-weight: 700; color: var(--primary-color); padding-top: 16px; border-top: 1px solid var(--border-color);
         }
         .total-section .total-label { font-size: 16px; font-weight: 500; color: var(--on-surface-variant-color); }
         .items-list { margin-top: 24px; }
-        .items-list h3 {
-            font-size: 16px; font-weight: 500; color: var(--on-surface-variant-color); margin-bottom: 16px;
-        }
-        .item {
-            display: flex; justify-content: space-between; padding: 12px 0;
-            border-bottom: 1px solid var(--border-color); font-size: 16px;
-        }
+        .items-list h3 { font-size: 16px; font-weight: 500; color: var(--on-surface-variant-color); margin-bottom: 16px; }
+        .item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); font-size: 16px; }
         .item:last-child { border-bottom: none; }
         .item-name { color: var(--on-surface-color); }
         .item-price { color: var(--on-surface-variant-color); font-weight: 500; }
-
-        /* --- GENERIC PAGE STYLES --- */
-        .page-header {
-            font-size: 24px; font-weight: 500;
-            color: var(--on-surface-color); margin-bottom: 24px;
-            flex-shrink: 0;
-        }
-        .scrollable-content {
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            /* Give it some breathing room at the bottom */
-            padding-bottom: 16px;
-        }
-        .empty-state {
-            text-align: center; padding: 40px;
-            color: var(--on-surface-variant-color); margin: auto;
-        }
+        .page-header { font-size: 22px; font-weight: 500; color: var(--on-surface-color); margin-bottom: 20px; flex-shrink: 0; }
+        .scrollable-content { overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 16px; }
+        .empty-state { text-align: center; padding: 40px; color: var(--on-surface-variant-color); margin: auto; }
         .empty-state .material-icons { font-size: 48px; margin-bottom: 16px; }
-
-        /* --- LIST (RECEIPT HISTORY) CARD --- */
         .list-item-card {
-            display: flex; align-items: center; gap: 16px;
-            background-color: var(--surface-color); padding: 16px;
-            border-radius: var(--border-radius); box-shadow: var(--shadow-1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex; align-items: center; gap: 16px; background-color: var(--surface-color);
+            padding: 16px; border-radius: var(--border-radius); box-shadow: var(--shadow-1);
             flex-shrink: 0;
         }
-        .list-item-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
         .list-item-card .icon-container {
-            width: 40px; height: 40px; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center;
-            background-color: var(--background-color); color: var(--primary-color);
+            width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; background-color: var(--background-color); color: var(--primary-color);
         }
         .list-item-card .info { flex-grow: 1; }
         .list-item-card .merchant { font-weight: 500; color: var(--on-surface-color); font-size: 16px; }
         .list-item-card .date { color: var(--on-surface-variant-color); font-size: 14px; }
         .list-item-card .total { font-weight: 700; color: var(--on-surface-color); font-size: 18px; }
-
-        /* --- EXPENSE REPORT STYLES --- */
+        /* --- NEW: CATEGORY TAG STYLE --- */
+        .category-tag {
+            font-size: 12px; font-weight: 500; padding: 4px 8px; border-radius: 12px;
+            background-color: var(--background-color); color: var(--on-surface-variant-color);
+            margin-top: 4px; display: inline-block;
+        }
         #reportFilterForm {
-            margin-bottom: 8px; /* Reduced from 24 */
-            background-color: var(--surface-color); padding: 16px;
-            border-radius: var(--border-radius); box-shadow: var(--shadow-1);
-            flex-shrink: 0;
+            margin-bottom: 8px; background-color: var(--surface-color); padding: 16px;
+            border-radius: var(--border-radius); box-shadow: var(--shadow-1); flex-shrink: 0;
         }
         .date-inputs { display: flex; gap: 12px; margin-bottom: 16px; }
         .date-inputs input[type="date"] {
@@ -316,81 +152,82 @@
         }
         .filter-buttons { display: flex; gap: 12px; }
         .filter-buttons button {
-            width: 100%; padding: 12px; border-radius: 8px; border: none;
-            font-weight: 700; font-size: 14px; cursor: pointer;
-            transition: background-color 0.2s, box-shadow 0.2s;
+            width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 700;
+            font-size: 14px; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .filter-buttons button[type="submit"] { background-color: var(--primary-color); color: var(--on-primary-color); }
-        .filter-buttons button[type="submit"]:hover { background-color: var(--primary-variant); }
-        .filter-buttons button[type="button"] {
-            background-color: transparent; color: var(--on-surface-variant-color);
-            border: 1px solid var(--border-color);
-        }
-        .filter-buttons button[type="button"]:hover { background-color: var(--background-color); }
+        .filter-buttons button[type="button"] { background-color: transparent; color: var(--on-surface-variant-color); border: 1px solid var(--border-color); }
         .report-card {
-            background-color: var(--surface-color); border-radius: var(--border-radius);
-            padding: 20px; box-shadow: var(--shadow-1); border-left: 5px solid;
-            flex-shrink: 0;
+            background-color: var(--surface-color); border-radius: var(--border-radius); padding: 20px;
+            box-shadow: var(--shadow-1); border-left: 5px solid; flex-shrink: 0;
         }
         .report-card.danger { border-left-color: var(--danger-color); }
         .report-card.success { border-left-color: var(--secondary-color); }
-        .report-card h3 {
-            display: flex; align-items: center; gap: 12px;
-            font-size: 16px; font-weight: 500; margin-bottom: 12px;
-        }
+        .report-card h3 { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; margin-bottom: 12px; }
         .report-card.danger h3 { color: var(--danger-color); }
         .report-card.success h3 { color: var(--secondary-color); }
         .report-item-name { font-size: 20px; font-weight: 700; color: var(--on-surface-color); }
         .report-item-price { font-size: 24px; font-weight: 500; color: var(--on-surface-color); margin-top: 4px; }
         .report-item-details { font-size: 14px; color: var(--on-surface-variant-color); margin-top: 8px; }
-
-        /* --- CHATBOT --- */
-        .chat-messages {
-            flex-grow: 1; overflow-y: auto; display: flex;
-            flex-direction: column; gap: 12px; padding-bottom: 16px;
-        }
-        .message {
-            padding: 10px 16px; border-radius: 18px;
-            max-width: 85%; line-height: 1.5; word-wrap: break-word;
-        }
-        .user-message {
-            background-color: var(--primary-color); color: var(--on-primary-color);
-            margin-left: auto; border-bottom-right-radius: 4px;
-        }
-        .bot-message {
-            background-color: var(--surface-color); color: var(--on-surface-color);
-            align-self: flex-start; border-bottom-left-radius: 4px;
-            box-shadow: var(--shadow-1);
-        }
-        #thinking-message { display: flex; gap: 5px; align-items: center; }
-        #thinking-message .dot {
-            width: 8px; height: 8px; background-color: var(--on-surface-variant-color);
-            border-radius: 50%; animation: typing 1.4s infinite;
-        }
-        #thinking-message .dot:nth-child(2) { animation-delay: 0.2s; }
-        #thinking-message .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+        .chat-messages { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+        .message { padding: 10px 16px; border-radius: 18px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
+        .user-message { background-color: var(--primary-color); color: var(--on-primary-color); margin-left: auto; border-bottom-right-radius: 4px; }
+        .bot-message { background-color: var(--surface-color); color: var(--on-surface-color); align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: var(--shadow-1); }
         .chat-input-form {
-            display: flex; align-items: center; flex-shrink: 0;
-            background-color: var(--surface-color); border-radius: 28px;
-            padding: 6px; box-shadow: var(--shadow-1); margin-top: 16px;
+            display: flex; align-items: center; flex-shrink: 0; background-color: var(--surface-color);
+            border-radius: 28px; padding: 6px; box-shadow: var(--shadow-1); margin-top: 16px;
         }
-        .chat-input {
-            flex-grow: 1; padding: 10px; border: none; background-color: transparent;
-            color: var(--on-surface-color); font-size: 16px; font-family: var(--font-family);
-        }
+        .chat-input { flex-grow: 1; padding: 10px; border: none; background-color: transparent; color: var(--on-surface-color); font-size: 16px; font-family: var(--font-family); }
         .chat-input:focus { outline: none; }
         .chat-btn {
-            background-color: transparent; color: var(--on-surface-variant-color);
-            border: none; width: 44px; height: 44px; cursor: pointer; border-radius: 50%;
-            transition: color 0.2s, background-color 0.2s;
+            background-color: transparent; color: var(--on-surface-variant-color); border: none;
+            width: 44px; height: 44px; cursor: pointer; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
         }
-        .chat-btn:hover { background-color: var(--background-color); }
         #sendBtn { background-color: var(--primary-color); color: var(--on-primary-color); }
-        #sendBtn:hover { background-color: var(--primary-variant); }
-        .mic-btn.is-listening { color: var(--danger-color); }
+
+        /* --- TRACKER PAGE STYLES --- */
+        .budget-card {
+            background-color: var(--surface-color); padding: 20px; border-radius: var(--border-radius);
+            box-shadow: var(--shadow-1); margin-bottom: 20px;
+        }
+        .budget-card h3 { font-size: 16px; font-weight: 500; color: var(--on-surface-variant-color); margin-bottom: 16px; }
+        .budget-form { display: flex; gap: 12px; align-items: center; }
+        .budget-form .input-group { position: relative; flex-grow: 1; }
+        .budget-form .input-group .currency-symbol {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--on-surface-variant-color); font-size: 16px;
+        }
+        .budget-form input {
+            width: 100%; padding: 12px 12px 12px 28px; background-color: var(--background-color);
+            border: 1px solid var(--border-color); color: var(--on-surface-color);
+            border-radius: 8px; font-family: var(--font-family); font-size: 16px;
+        }
+        .budget-form button {
+            padding: 12px 16px; border-radius: 8px; border: none; font-weight: 500;
+            cursor: pointer; background-color: var(--secondary-color); color: var(--on-primary-color);
+        }
+        .progress-bar-container { margin-top: 20px; }
+        .progress-bar-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+        .progress-bar-bg { width: 100%; height: 10px; background-color: var(--border-color); border-radius: 5px; overflow: hidden; }
+        .progress-bar-fill {
+            height: 100%; width: 0%; background-color: var(--primary-color); border-radius: 5px;
+            transition: width 0.5s ease-out;
+        }
+        .progress-bar-fill.warning { background-color: var(--warning-color); }
+        .progress-bar-fill.danger { background-color: var(--danger-color); }
+        #suggestion-card {
+            background-color: #fffbeb; border: 1px solid var(--warning-color); color: #5c3c00;
+            padding: 16px; border-radius: var(--border-radius); display: flex; gap: 12px;
+        }
+        #suggestion-card .material-icons { color: var(--warning-color); }
+        #suggestion-card p { font-size: 14px; line-height: 1.5; }
+        /* --- NEW: CATEGORY CHART STYLE --- */
+        #category-chart-container {
+            background-color: var(--surface-color); padding: 20px; border-radius: var(--border-radius);
+            box-shadow: var(--shadow-1); margin-bottom: 20px;
+        }
 
     </style>
 </head>
@@ -401,48 +238,61 @@
         </header>
 
         <main class="content-area">
-
-            <!-- Scan Page Content -->
             <div id="scan-page" class="tab-content active">
-                <div id="main-scan-view">
-                    <div class="scan-container">
-                        <i class="material-icons">document_scanner</i>
-                        <h2>Scan a Receipt</h2>
-                        <p>Press the camera button to begin.</p>
+                <div id="main-scan-view"><div class="scan-container">
+                    <i class="material-icons">document_scanner</i>
+                    <h2>Scan a Receipt</h2><p>Press the camera button to begin.</p>
+                </div></div>
+                <div id="resultsScreen"></div>
+            </div>
+
+            <div id="tracker-page" class="tab-content">
+                <h1 class="page-header" id="tracker-header">Monthly Tracker</h1>
+                <div id="tracker-content">
+                    <div class="budget-card">
+                        <h3>Set Your Monthly Budget</h3>
+                        <form id="budgetForm" class="budget-form">
+                            <div class="input-group">
+                                <span class="currency-symbol">₹</span>
+                                <input type="number" id="budgetLimitInput" placeholder="e.g., 25000" step="100" min="0">
+                            </div>
+                            <button type="submit">Set</button>
+                        </form>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-info">
+                                <span id="spentAmount">Spent: ₹0</span>
+                                <span id="limitAmount">Limit: ₹0</span>
+                            </div>
+                            <div class="progress-bar-bg"><div id="progressBar" class="progress-bar-fill"></div></div>
+                        </div>
                     </div>
-                </div>
-                <div id="resultsScreen">
-                     <!-- Results will be injected here by JS -->
+
+                    <!-- --- NEW: CHART CONTAINER --- -->
+                    <div id="category-chart-container">
+                        <h3>Spending by Category</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+
+                    <div id="suggestion-container"></div>
+                    <h3>This Month's Transactions</h3>
+                    <div id="monthlyTransactions" class="scrollable-content"></div>
                 </div>
             </div>
 
-            <!-- List Page Content -->
-            <div id="list-page" class="tab-content">
-                <h1 class="page-header">Receipt History</h1>
-                <div id="dataListContainer" class="scrollable-content">
-                    <!-- Receipt cards will be injected here -->
-                </div>
-            </div>
-
-            <!-- Report Page Content -->
             <div id="report-page" class="tab-content">
                 <h1 class="page-header">Expense Report</h1>
                 <form id="reportFilterForm">
                     <div class="date-inputs">
-                        <input type="date" id="startDate" name="start_date">
-                        <input type="date" id="endDate" name="end_date">
+                        <input type="date" id="startDate" name="start_date"><input type="date" id="endDate" name="end_date">
                     </div>
                     <div class="filter-buttons">
                         <button type="submit"><i class="material-icons">filter_alt</i>Filter</button>
                         <button type="button" id="resetReportBtn"><i class="material-icons">refresh</i>Show All</button>
                     </div>
                 </form>
-                <div id="reportContainer" class="scrollable-content">
-                    <!-- Report cards will be generated here -->
-                </div>
+                <div id="reportContainer" class="scrollable-content"></div>
             </div>
 
-            <!-- Chatbot Page Content -->
             <div id="chatbot-page" class="tab-content">
                 <div class="chat-messages" id="chatMessages">
                      <div class="message bot-message">Hi! How can I help you analyze your spending?</div>
@@ -453,30 +303,27 @@
                     <button type="submit" class="chat-btn" id="sendBtn"><i class="material-icons">send</i></button>
                 </form>
             </div>
-
         </main>
 
-        <!-- FAB and File Input are outside the main content area for positioning -->
         <button id="scanBtn"><i class="material-icons">photo_camera</i></button>
         <input type="file" id="fileInput" accept="image/*" style="display:none;">
 
         <nav class="tab-nav">
             <div class="tab-link active" data-tab="scan-page"><i class="material-icons">document_scanner</i><span class="tab-label">Scan</span></div>
-            <div class="tab-link" data-tab="list-page"><i class="material-icons">list_alt</i><span class="tab-label">List</span></div>
+            <div class="tab-link" data-tab="tracker-page"><i class="material-icons">track_changes</i><span class="tab-label">Tracker</span></div>
             <div class="tab-link" data-tab="report-page"><i class="material-icons">pie_chart</i><span class="tab-label">Report</span></div>
             <div class="tab-link" data-tab="chatbot-page"><i class="material-icons">chat</i><span class="tab-label">Chat</span></div>
         </nav>
     </div>
 
-    <!-- Processing Overlay is also outside -->
     <div class="processing-overlay" id="processingOverlay">
-        <div class="spinner"></div>
-        <p>Analyzing Receipt...</p>
+        <div class="spinner"></div><p>Analyzing & Categorizing...</p>
     </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- CSRF Token Helper ---
+        let categoryChartInstance = null;
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -493,254 +340,270 @@
         }
         const csrftoken = getCookie('csrftoken');
 
-        // --- DOM Element References ---
         const tabs = document.querySelectorAll('.tab-link');
         const contents = document.querySelectorAll('.tab-content');
         const scanBtn = document.getElementById('scanBtn');
         const fileInput = document.getElementById('fileInput');
-        const processingOverlay = document.getElementById('processingOverlay');
-        const mainScanView = document.getElementById('main-scan-view');
-        const resultsScreen = document.getElementById('resultsScreen');
 
-        // --- Tab Navigation ---
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const targetPageId = tab.dataset.tab;
-
                 tabs.forEach(item => item.classList.remove('active'));
                 contents.forEach(content => content.classList.remove('active'));
-
                 tab.classList.add('active');
                 document.getElementById(targetPageId).classList.add('active');
 
-                // Toggle FAB visibility
                 scanBtn.style.display = (targetPageId === 'scan-page') ? 'flex' : 'none';
 
-                // Fetch data when switching to a tab
-                if (targetPageId === 'list-page') fetchAndRenderData();
+                if (targetPageId === 'tracker-page') renderTrackerPage();
                 if (targetPageId === 'report-page') generateAndRenderReport();
                 if (targetPageId === 'scan-page') showMainScanView();
             });
         });
 
-        // --- Scan and Process Logic ---
         scanBtn.addEventListener('click', () => fileInput.click());
+
+        // --- START OF FIX ---
         fileInput.addEventListener('change', e => {
-            if (e.target.files.length > 0) processImage(e.target.files[0]);
+            // Check if files were selected and pass only the first file to processImage
+            if (e.target.files.length > 0) {
+                processImage(e.target.files[0]);
+            }
         });
 
-        function processImage(file) {
+        function processImage(file) { // The 'file' parameter is now correctly a single File object
             const formData = new FormData();
+            // Append the single file object to FormData
             formData.append('image', file);
-            processingOverlay.classList.add('visible');
+            // --- END OF FIX ---
+
+            document.getElementById('processingOverlay').classList.add('visible');
 
             fetch('/api/process/', {
                 method: 'POST',
                 headers: { 'X-CSRFToken': csrftoken },
                 body: formData,
             })
-            .then(response => {
-                if (!response.ok) return response.text().then(text => { throw new Error(text) });
-                return response.json();
-            })
+            .then(response => response.ok ? response.json() : response.text().then(text => { throw new Error(text) }))
             .then(data => {
                 if (data.error) throw new Error(data.error);
-                displayResults(data.json_data);
+                displayResults(data.json_data, data.category);
             })
             .catch(handleError)
-            .finally(() => processingOverlay.classList.remove('visible'));
+            .finally(() => document.getElementById('processingOverlay').classList.remove('visible'));
         }
 
         function handleError(error) {
             console.error('Error:', error);
-            let errorMessage = "An unexpected error occurred.";
-            try {
-                const errorJson = JSON.parse(error.message);
-                errorMessage = `Upload failed: ${errorJson.error || (errorJson.image && errorJson.image[0]) || 'Unknown error'}`;
-            } catch (e) {
-                if (error.message.includes('<')) {
-                   errorMessage = "A server error occurred. Please check the logs.";
-                } else {
-                   errorMessage = error.message;
-                }
-            }
-            alert(errorMessage);
+            alert(`An error occurred: ${error.message}`);
         }
 
-        function displayResults(data) {
-            const resultsHTML = `
-            <div class="results-header">
-                <i class="material-icons back-arrow" id="backBtn">arrow_back</i>
-                <h2>Extraction Results</h2>
-            </div>
+        function displayResults(data, category) {
+            const resultsScreen = document.getElementById('resultsScreen');
+            resultsScreen.innerHTML = `
+            <div class="results-header"><i class="material-icons back-arrow" id="backBtn">arrow_back</i><h2>Extraction Results</h2></div>
             <div class="receipt-card">
                 <div class="merchant-name">${data['Merchant Name'] || 'N/A'}</div>
                 <div class="transaction-date">${data['Transaction Date'] || ''} ${data['Transaction Time'] || ''}</div>
-                <div class="items-list">
-                    <h3>Purchased Items</h3>
+                <div class="category-tag">${category || 'Other'}</div>
+                <div class="items-list"><h3>Purchased Items</h3>
                     ${(data.Items && data.Items.length > 0)
                         ? data.Items.map(item => `<div class="item"><span class="item-name">${item.Item || 'Item'}</span><span class="item-price">₹${parseFloat(item.Price || 0).toFixed(2)}</span></div>`).join('')
                         : '<div class="item"><span class="item-name">No item details found.</span></div>'
                     }
                 </div>
-                <div class="total-section">
-                    <span class="total-label">Total Paid</span>
-                    <span>₹${parseFloat(data['Total Amount'] || 0).toFixed(2)}</span>
-                </div>
+                <div class="total-section"><span class="total-label">Total Paid</span><span>₹${parseFloat(data['Total Amount'] || 0).toFixed(2)}</span></div>
             </div>`;
-            resultsScreen.innerHTML = resultsHTML;
-            mainScanView.style.display = 'none';
+            document.getElementById('main-scan-view').style.display = 'none';
             resultsScreen.style.display = 'block';
             document.getElementById('backBtn').addEventListener('click', showMainScanView);
         }
 
         function showMainScanView() {
-            resultsScreen.style.display = 'none';
-            mainScanView.style.display = 'block';
+            document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('main-scan-view').style.display = 'block';
             fileInput.value = '';
         }
 
-        // --- List Data Logic ---
-        const dataListContainer = document.getElementById('dataListContainer');
-        function fetchAndRenderData() {
-            fetch('/api/receipts/')
+        const budgetForm = document.getElementById('budgetForm');
+        budgetForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const limit = document.getElementById('budgetLimitInput').value;
+            if (limit && parseFloat(limit) > 0) {
+                fetch('/api/budget/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                    body: JSON.stringify({ limit: limit }),
+                })
                 .then(response => response.json())
-                .then(renderDataCards)
-                .catch(error => {
-                    console.error('Error fetching receipt data:', error);
-                    dataListContainer.innerHTML = `<div class="empty-state"><i class="material-icons">error_outline</i><p>Could not load receipt data.</p></div>`;
+                .then(() => renderTrackerPage())
+                .catch(handleError);
+            }
+        });
+
+        function renderTrackerPage() {
+            const container = document.getElementById('monthlyTransactions');
+            container.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
+
+            fetch('/api/tracker/')
+                .then(res => res.json())
+                .then(data => {
+                    const budgetLimit = parseFloat(data.budget.limit);
+                    const totalSpent = parseFloat(data.total_spent);
+
+                    const now = new Date();
+                    const monthName = now.toLocaleString('default', { month: 'long' });
+                    document.getElementById('tracker-header').textContent = `${monthName} Tracker`;
+
+                    document.getElementById('budgetLimitInput').value = budgetLimit.toFixed(2);
+                    document.getElementById('spentAmount').textContent = `Spent: ₹${totalSpent.toFixed(2)}`;
+                    document.getElementById('limitAmount').textContent = `Limit: ₹${budgetLimit.toFixed(2)}`;
+
+                    const progressBar = document.getElementById('progressBar');
+                    const percentage = (budgetLimit > 0) ? (totalSpent / budgetLimit) * 100 : 0;
+                    progressBar.style.width = `${Math.min(percentage, 100)}%`;
+                    progressBar.classList.remove('warning', 'danger');
+                    if (percentage > 90) progressBar.classList.add('danger');
+                    else if (percentage > 70) progressBar.classList.add('warning');
+
+                    const suggestionContainer = document.getElementById('suggestion-container');
+                    if (data.suggestion) {
+                        suggestionContainer.innerHTML = `
+                        <div id="suggestion-card">
+                            <i class="material-icons">lightbulb</i>
+                            <div>
+                                <h4>Spending Alert!</h4>
+                                <p>${data.suggestion}</p>
+                            </div>
+                        </div>`;
+                    } else {
+                        suggestionContainer.innerHTML = '';
+                    }
+
+                    renderCategoryChart(data.category_summary);
+
+                    if (data.transactions.length === 0) {
+                        container.innerHTML = `<div class="empty-state"><i class="material-icons">receipt_long</i><p>No transactions this month.</p></div>`;
+                        return;
+                    }
+                    container.innerHTML = data.transactions.map(receipt => {
+                        const jsonData = receipt.json_data || {};
+                        const total = jsonData['Total Amount'] ? parseFloat(jsonData['Total Amount']).toFixed(2) : '0.00';
+                        return `
+                        <div class="list-item-card">
+                            <div class="icon-container"><i class="material-icons">storefront</i></div>
+                            <div class="info">
+                                <div class="merchant">${jsonData['Merchant Name'] || 'N/A'}</div>
+                                <div class="date">${jsonData['Transaction Date'] || 'N/A'}</div>
+                                <div class="category-tag">${receipt.category || 'Other'}</div>
+                            </div>
+                            <div class="total">₹${total}</div>
+                        </div>`;
+                    }).join('');
+                })
+                .catch(err => {
+                    container.innerHTML = `<div class="empty-state"><i class="material-icons">error</i><p>Could not load tracker data.</p></div>`;
+                    handleError(err);
                 });
         }
 
-        function renderDataCards(receipts) {
-            if (!receipts || receipts.length === 0) {
-                dataListContainer.innerHTML = `<div class="empty-state"><i class="material-icons">receipt_long</i><p>No receipts scanned yet.</p></div>`;
+        function renderCategoryChart(categoryData) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const chartContainer = document.getElementById('category-chart-container');
+
+            if (Object.keys(categoryData).length === 0) {
+                chartContainer.style.display = 'none';
                 return;
             }
-            dataListContainer.innerHTML = receipts.map(receipt => {
-                const data = receipt.json_data || {};
-                const total = data['Total Amount'] ? parseFloat(data['Total Amount']).toFixed(2) : '0.00';
-                return `
-                <div class="list-item-card">
-                    <div class="icon-container"><i class="material-icons">storefront</i></div>
-                    <div class="info">
-                        <div class="merchant">${data['Merchant Name'] || 'N/A'}</div>
-                        <div class="date">${data['Transaction Date'] || 'N/A'}</div>
-                    </div>
-                    <div class="total">₹${total}</div>
-                </div>`;
-            }).join('');
-        }
+            chartContainer.style.display = 'block';
 
-        // --- Expense Report Logic ---
-        const reportContainer = document.getElementById('reportContainer');
-        const reportFilterForm = document.getElementById('reportFilterForm');
-        const resetReportBtn = document.getElementById('resetReportBtn');
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-
-        function generateAndRenderReport(startDate = null, endDate = null) {
-            reportContainer.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
-
-            let url = '/api/expense-report/';
-            if (startDate && endDate) {
-                url += `?${new URLSearchParams({ start_date: startDate, end_date: endDate })}`;
+            if (categoryChartInstance) {
+                categoryChartInstance.destroy();
             }
 
+            const labels = Object.keys(categoryData);
+            const data = Object.values(categoryData);
+
+            categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Spending',
+                        data: data,
+                        backgroundColor: [
+                            '#4285F4', '#EA4335', '#FBBC05', '#34A853',
+                            '#FA7B17', '#9334E6', '#E52592', '#7CB342'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 15, boxWidth: 12 } }
+                    }
+                }
+            });
+        }
+
+        const reportContainer = document.getElementById('reportContainer');
+        const reportFilterForm = document.getElementById('reportFilterForm');
+        function generateAndRenderReport(startDate = null, endDate = null) {
+            reportContainer.innerHTML = '<div class="spinner" style="margin: 20px auto;"></div>';
+            let url = '/api/expense-report/';
+            if (startDate && endDate) url += `?${new URLSearchParams({ start_date: startDate, end_date: endDate })}`;
             fetch(url)
-                .then(response => {
-                    if (!response.ok) return response.json().then(err => { throw new Error(err.error) });
-                    return response.json();
-                })
+                .then(response => { if (!response.ok) return response.json().then(err => { throw new Error(err.error || 'Report Error') }); return response.json(); })
                 .then(renderReport)
                 .catch(error => {
-                    console.error('Error generating report:', error);
                     reportContainer.innerHTML = `<div class="empty-state"><i class="material-icons">warning</i><p>${error.message}</p></div>`;
                 });
         }
-
         reportFilterForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            if (!startDateInput.value || !endDateInput.value) {
-                alert('Please select both a start and end date.');
-                return;
-            }
-            generateAndRenderReport(startDateInput.value, endDateInput.value);
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            if (startDate && endDate) generateAndRenderReport(startDate, endDate);
+            else alert('Please select both a start and end date.');
         });
-
-        resetReportBtn.addEventListener('click', () => {
-            startDateInput.value = '';
-            endDateInput.value = '';
+        document.getElementById('resetReportBtn').addEventListener('click', () => {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
             generateAndRenderReport();
         });
-
         function renderReport(data) {
             if (!data || (!data.most_expensive && !data.least_expensive)) {
-                reportContainer.innerHTML = `<div class="empty-state"><i class="material-icons">data_usage</i><p>Not enough data to generate a report for this period.</p></div>`;
-                return;
+                reportContainer.innerHTML = `<div class="empty-state"><i class="material-icons">data_usage</i><p>Not enough data to generate a report.</p></div>`; return;
             }
             let reportHTML = '';
             if (data.most_expensive) {
                 const item = data.most_expensive;
                 reportHTML += `
-                <div class="report-card danger">
-                    <h3><i class="material-icons">trending_up</i>Most Expensive Purchase</h3>
-                    <div class="report-item-name">${item.Item}</div>
-                    <div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div>
-                    <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div>
-                </div>`;
+                <div class="report-card danger"><h3><i class="material-icons">trending_up</i>Most Expensive</h3>
+                    <div class="report-item-name">${item.Item}</div><div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div>
+                    <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div></div>`;
             }
             if (data.least_expensive) {
                 const item = data.least_expensive;
                 reportHTML += `
-                <div class="report-card success">
-                    <h3><i class="material-icons">trending_down</i>Least Expensive Purchase</h3>
-                    <div class="report-item-name">${item.Item}</div>
-                    <div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div>
-                    <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div>
-                </div>`;
+                <div class="report-card success"><h3><i class="material-icons">trending_down</i>Least Expensive</h3>
+                    <div class="report-item-name">${item.Item}</div><div class="report-item-price">₹${parseFloat(item.Price).toFixed(2)}</div>
+                    <div class="report-item-details">From: ${item.Merchant} on ${item.Date}</div></div>`;
             }
             reportContainer.innerHTML = reportHTML;
         }
 
-        // --- Chatbot Logic ---
         const chatForm = document.getElementById('chatForm');
-        const chatInput = document.getElementById('chatInput');
-        const chatMessages = document.getElementById('chatMessages');
-        const micBtn = document.getElementById('micBtn');
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-
-            micBtn.addEventListener('click', () => {
-                 micBtn.classList.add('is-listening');
-                 recognition.start();
-            });
-            recognition.addEventListener('end', () => micBtn.classList.remove('is-listening'));
-            recognition.addEventListener('result', (e) => {
-                chatInput.value = e.results[0][0].transcript;
-                chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
-            });
-        } else {
-            micBtn.style.display = 'none';
-        }
-
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const message = chatInput.value.trim();
-            if (message) {
-                sendMessageToBot(message);
-                chatInput.value = '';
-            }
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (message) { sendMessageToBot(message); input.value = ''; }
         });
-
         function sendMessageToBot(messageText) {
             appendMessage(messageText, 'user');
-            appendMessage("Thinking...", 'bot', true);
+            appendMessage("...", 'bot', true);
             fetch('/api/chatbot/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
@@ -748,32 +611,24 @@
             })
             .then(response => response.json())
             .then(data => updateLastBotMessage(data.response))
-            .catch(error => {
-                 console.error('Error:', error);
-                 updateLastBotMessage("Sorry, I encountered an error.");
-            });
+            .catch(error => { updateLastBotMessage("Sorry, something went wrong."); });
         }
-
         function appendMessage(text, sender, isThinking = false) {
+            const chatMessages = document.getElementById('chatMessages');
             const msgEl = document.createElement('div');
             msgEl.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
             if (isThinking) {
                 msgEl.id = 'thinking-message';
-                msgEl.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
+                msgEl.innerHTML = `...`;
             } else {
                 msgEl.textContent = text;
             }
             chatMessages.appendChild(msgEl);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
-
         function updateLastBotMessage(text) {
             const thinkingMsg = document.getElementById('thinking-message');
-            if (thinkingMsg) {
-                thinkingMsg.innerHTML = ''; // Clear dots
-                thinkingMsg.textContent = text;
-                thinkingMsg.id = '';
-            }
+            if (thinkingMsg) { thinkingMsg.textContent = text; thinkingMsg.id = ''; }
         }
     });
     </script>
